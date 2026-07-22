@@ -48,7 +48,7 @@
     panel.style.cssText = `
       display: none;
       width: 280px;
-      height: 260px;
+      height: auto;
       background: white;
       border-radius: 10px;
       box-shadow: 0 6px 20px rgba(0,0,0,.25);
@@ -59,9 +59,62 @@
 
     panel.innerHTML = `
  
-  <button id="recaho-min-btn" style="margin-top:6px;width:100%;padding:6px;">x</button>
-      <textarea placeholder="Paste order text" id="recaho-raw" style="width:100%;height:150px;"></textarea>
-      <button id="recaho-fill-btn" style="margin-top:6px;width:100%;padding:6px;">Fill form</button>
+<div style="display:flex;flex-direction:column;gap:12px;">
+    <button
+        id="recaho-min-btn"
+        style="flex:1;padding:8px;border:none;background:#f3f4f6;border-radius:8px;cursor:pointer;font-weight:600;">
+        ✕ Close
+    </button>
+
+  
+
+  <textarea
+    id="recaho-raw"
+    placeholder="Paste order text here..."
+    style="
+      width:100%;
+      height:170px;
+      padding:12px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      font-size:14px;
+      font-family:inherit;
+      resize:vertical;
+      outline:none;
+      box-sizing:border-box;
+    ">Name:
+Phone Number:
+Email:
+
+Cake Flavour:
+Cake Size (in kg):
+
+Message on Cake:
+Message or Gift Note (if any):
+
+Pickup or Delivery:
+Delivery Address & Google Pin:
+Pickup / Delivery Date:
+Preferred Time Slot (10–2 / 2–6 / 6–10):</textarea>
+
+  <button
+    id="recaho-fill-btn"
+    style="
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      background:#32B4F1;
+      color:white;
+      font-size:15px;
+      font-weight:600;
+      cursor:pointer;
+      transition:.2s;
+    ">
+    ⚡ Fill Booking Form
+  </button>
+
+</div>
     
     `;
 
@@ -171,7 +224,7 @@
       { key: "Message or Gift Note (if any)", field: "gift_note" },
 
       { key: "Pickup or Delivery", field: "pickup_delivery" },
-      { key: "Delivery Address & Google Pin", field: "delivery_address" },
+      { key: "Delivery Address & Google Pin", field: "Address" },
       { key: "Pickup / Delivery Date", field: "delivery_date" },
       { key: "Preferred Time Slot (10–2 / 2–6 / 6–10)", field: "time_slot" }
     ];
@@ -283,4 +336,28 @@
     return result;
   }
 
+const shortcuts = {
+  n: () => document.getElementById("NewOrderButton")?.click(),
+  f: () => document.querySelector("#recaho-filler-widget > div")?.click(),
+  escape: () => document.getElementById("recaho-min-btn")?.click(),
+  enter: () => document.getElementById("recaho-fill-btn")?.click(),
+};
+
+document.addEventListener("keydown", (e) => {
+  const tag = document.activeElement?.tagName;
+
+  if (
+    tag === "INPUT" ||
+    tag === "TEXTAREA" ||
+    document.activeElement?.isContentEditable
+  ) {
+    return;
+  }
+
+  const action = shortcuts[e.key.toLowerCase()];
+  if (action) {
+    e.preventDefault();
+    action();
+  }
+});
 })();
