@@ -423,7 +423,7 @@ function createDeliveryDashboard() {
     position:fixed;
     left:20px;
     top:20px;
-    width:380px;
+    width:500px;
     max-height:85vh;
     background:#fff;
     border:1px solid #ddd;
@@ -590,103 +590,310 @@ function renderDeliveryDashboard() {
   const list = document.getElementById("delivery-list");
   list.innerHTML = "";
 
-  filtered.forEach(order => {
+
+list.innerHTML = `
+<div style="display:flex;gap:12px;height:100%;">
+
+    <div id="driver-a"
+        style="
+            flex:1;
+            border:1px solid #ddd;
+            border-radius:10px;
+            background:#fafafa;
+            display:flex;
+            flex-direction:column;
+        ">
+
+        <div style="
+            padding:10px;
+            background:#22c55e;
+            color:#fff;
+            font-weight:bold;
+            border-radius:10px 10px 0 0;
+        ">
+            🚚 Driver A
+        </div>
+
+        <div class="driver-list"
+            style="
+                padding:10px;
+                flex:1;
+                overflow:auto;
+                min-height:400px;
+            ">
+        </div>
+
+    </div>
+
+    <div id="driver-b"
+        style="
+            flex:1;
+            border:1px solid #ddd;
+            border-radius:10px;
+            background:#fafafa;
+            display:flex;
+            flex-direction:column;
+        ">
+
+        <div style="
+            padding:10px;
+            background:#3b82f6;
+            color:white;
+            font-weight:bold;
+            border-radius:10px 10px 0 0;
+        ">
+            🚚 Driver B
+        </div>
+
+        <div class="driver-list"
+            style="
+                padding:10px;
+                flex:1;
+                overflow:auto;
+                min-height:400px;
+            ">
+        </div>
+
+    </div>
+
+</div>
+`;
+
+const driverA = document.querySelector("#driver-a .driver-list");
+const driverB = document.querySelector("#driver-b .driver-list");
+
+filtered.forEach((order, index) => {
+
+    const slotColor =
+        /10.*2/i.test(order.timeSlot)
+            ? "#22c55e"
+            : /2.*6/i.test(order.timeSlot)
+            ? "#f59e0b"
+            : /6.*10/i.test(order.timeSlot)
+            ? "#ef4444"
+            : "#94a3b8";
 
     const card = document.createElement("div");
 
+    card.draggable = true;
+
     card.style.cssText = `
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      padding:10px;
-      background:#fff;
-      cursor:pointer;
+        border:1px solid #ddd;
+        border-radius:10px;
+        background:white;
+        padding:10px;
+        margin-bottom:10px;
+        cursor:grab;
+        box-shadow:0 2px 6px rgba(0,0,0,.08);
     `;
 
     card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:start;">
-        <div>
-          <div style="font-weight:700;font-size:15px;">#${order.orderNo}</div>
-          <div style="color:#64748b;font-size:12px;">${order.onlineId ? 'Online #'+order.onlineId : ''}</div>
+        <div style="display:flex;justify-content:space-between;">
+
+            <div>
+
+                <div style="font-weight:bold;">
+                    #${order.orderNo}
+                </div>
+
+                <div style="font-size:12px;color:#666;">
+                    ${order.name}
+                </div>
+
+            </div>
+
+            <div
+                style="
+                    background:${slotColor};
+                    color:white;
+                    padding:3px 8px;
+                    border-radius:999px;
+                    font-size:11px;
+                    font-weight:bold;
+                ">
+                ${order.timeSlot || "-"}
+            </div>
+
+        </div>
+
+        <div style="margin-top:8px;font-size:13px;">
+            📞 ${order.phone}
+        </div>
+
+        <div style="margin-top:4px;font-size:13px;">
+            📍 ${order.area}
         </div>
 
         <div style="
-          background:#f1f5f9;
-          border-radius:999px;
-          padding:4px 8px;
-          font-size:11px;
-          font-weight:600;
+            margin-top:8px;
+            font-size:12px;
+            color:#666;
+            max-height:48px;
+            overflow:hidden;
         ">
-          ${order.timeSlot || 'No Slot'}
+            ${order.address}
         </div>
-      </div>
 
-      <div style="margin-top:8px;font-weight:600;">👤 ${order.name}</div>
-      <div style="font-size:13px;color:#334155;margin-top:2px;">📞 ${order.phone}</div>
-      <div style="font-size:13px;color:#334155;margin-top:2px;">📍 ${order.area}</div>
+        <div style="
+            display:flex;
+            gap:6px;
+            margin-top:10px;
+        ">
 
-      <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.4;">
-        ${order.address}
-      </div>
+            <button
+                class="copy-address-btn"
+                data-address="${order.address.replace(/"/g,"&quot;")}"
+                style="
+                    flex:1;
+                    border:none;
+                    background:#f1f5f9;
+                    border-radius:6px;
+                    padding:6px;
+                    cursor:pointer;
+                ">
+                📋
+            </button>
 
-      <div style="display:flex;gap:8px;margin-top:10px;">
+            <button
+                class="open-map-btn"
+                data-map="${order.map}"
+                style="
+                    flex:1;
+                    border:none;
+                    background:#0ea5e9;
+                    color:white;
+                    border-radius:6px;
+                    padding:6px;
+                    cursor:pointer;
+                ">
+                🗺
+            </button>
 
-        <button class="copy-address-btn" data-address="${order.address.replace(/"/g, '&quot;')}" style="
-          flex:1;
-          border:none;
-          background:#f1f5f9;
-          border-radius:8px;
-          padding:8px;
-          cursor:pointer;
-          font-size:12px;
-          font-weight:600;
-        ">📋 Copy Address</button>
-
-        <button class="open-map-btn" data-map="${order.map}" style="
-          flex:1;
-          border:none;
-          background:#0ea5e9;
-          color:#fff;
-          border-radius:8px;
-          padding:8px;
-          cursor:pointer;
-          font-size:12px;
-          font-weight:600;
-        ">🗺 Open Map</button>
-
-      </div>
+        </div>
     `;
 
-    list.appendChild(card);
-  });
+    card.addEventListener("dragstart", function () {
+        window.draggedCard = this;
+    });
 
-  // Copy buttons
-  list.querySelectorAll(".copy-address-btn").forEach(btn => {
+    (index % 2 === 0 ? driverA : driverB).appendChild(card);
 
-    btn.onclick = function(e) {
-      e.stopPropagation();
+});
 
-      navigator.clipboard.writeText(this.dataset.address);
+document.querySelectorAll(".driver-list").forEach(col => {
 
-      const old = this.textContent;
-      this.textContent = "✅ Copied";
+    col.addEventListener("dragover", function (e) {
+        e.preventDefault();
+    });
 
-      setTimeout(() => {
-        this.textContent = old;
-      }, 1200);
-    };
-  });
+    col.addEventListener("drop", function (e) {
 
-  // Map buttons
-  list.querySelectorAll(".open-map-btn").forEach(btn => {
+        e.preventDefault();
 
-    btn.onclick = function(e) {
-      e.stopPropagation();
+        if (window.draggedCard) {
+            this.appendChild(window.draggedCard);
+        }
 
-      if (this.dataset.map) {
-        window.open(this.dataset.map, "_blank");
-      }
-    };
-  });
+    });
+
+});
+  // filtered.forEach(order => {
+
+  //   const card = document.createElement("div");
+
+  //   card.style.cssText = `
+  //     border:1px solid #e5e7eb;
+  //     border-radius:12px;
+  //     padding:10px;
+  //     background:#fff;
+  //     cursor:pointer;
+  //   `;
+
+  //   card.innerHTML = `
+  //     <div style="display:flex;justify-content:space-between;align-items:start;">
+  //       <div>
+  //         <div style="font-weight:700;font-size:15px;">#${order.orderNo}</div>
+  //         <div style="color:#64748b;font-size:12px;">${order.onlineId ? 'Online #'+order.onlineId : ''}</div>
+  //       </div>
+
+  //       <div style="
+  //         background:#f1f5f9;
+  //         border-radius:999px;
+  //         padding:4px 8px;
+  //         font-size:11px;
+  //         font-weight:600;
+  //       ">
+  //         ${order.timeSlot || 'No Slot'}
+  //       </div>
+  //     </div>
+
+  //     <div style="margin-top:8px;font-weight:600;">👤 ${order.name}</div>
+  //     <div style="font-size:13px;color:#334155;margin-top:2px;">📞 ${order.phone}</div>
+  //     <div style="font-size:13px;color:#334155;margin-top:2px;">📍 ${order.area}</div>
+
+  //     <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.4;">
+  //       ${order.address}
+  //     </div>
+
+  //     <div style="display:flex;gap:8px;margin-top:10px;">
+
+  //       <button class="copy-address-btn" data-address="${order.address.replace(/"/g, '&quot;')}" style="
+  //         flex:1;
+  //         border:none;
+  //         background:#f1f5f9;
+  //         border-radius:8px;
+  //         padding:8px;
+  //         cursor:pointer;
+  //         font-size:12px;
+  //         font-weight:600;
+  //       ">📋 Copy Address</button>
+
+  //       <button class="open-map-btn" data-map="${order.map}" style="
+  //         flex:1;
+  //         border:none;
+  //         background:#0ea5e9;
+  //         color:#fff;
+  //         border-radius:8px;
+  //         padding:8px;
+  //         cursor:pointer;
+  //         font-size:12px;
+  //         font-weight:600;
+  //       ">🗺 Open Map</button>
+
+  //     </div>
+  //   `;
+
+  //   list.appendChild(card);
+  // });
+
+  // // Copy buttons
+  // list.querySelectorAll(".copy-address-btn").forEach(btn => {
+
+  //   btn.onclick = function(e) {
+  //     e.stopPropagation();
+
+  //     navigator.clipboard.writeText(this.dataset.address);
+
+  //     const old = this.textContent;
+  //     this.textContent = "✅ Copied";
+
+  //     setTimeout(() => {
+  //       this.textContent = old;
+  //     }, 1200);
+  //   };
+  // });
+
+  // // Map buttons
+  // list.querySelectorAll(".open-map-btn").forEach(btn => {
+
+  //   btn.onclick = function(e) {
+  //     e.stopPropagation();
+
+  //     if (this.dataset.map) {
+  //       window.open(this.dataset.map, "_blank");
+  //     }
+  //   };
+  // });
 }
 function makeDashboardDraggable(container, handle) {
 
