@@ -9,6 +9,7 @@
 
     if (document.getElementById("recaho-filler-widget")) return;
 
+
     createWidget();
   }
 
@@ -128,6 +129,7 @@ Preferred Time Slot (10–2 / 2–6 / 6–10):</textarea>
       opened = true;
       button.style.display = "none";
       panel.style.display = "block";
+createDeliveryDashboard();
     };
 
     panel.querySelector("#recaho-min-btn").onclick = () => {
@@ -335,7 +337,402 @@ Preferred Time Slot (10–2 / 2–6 / 6–10):</textarea>
 
     return result;
   }
+function extractOrders() {
 
+  const orders = [];
+
+  document.querySelectorAll(".customer-basic-details").forEach(customer => {
+
+    const card = customer.closest(".ant-col-12");
+    if (!card) return;
+
+    const text = card.innerText;
+
+    const name =
+      customer.querySelector("span")?.innerText.trim() || "";
+
+    const phone =
+      text.match(/\b05\d{8}\b/)?.[0] || "";
+
+    const orderNo =
+      text.match(/Order No:\s*(\d+)/)?.[1] || "";
+
+    const onlineId =
+      text.match(/Online Order ID\s*:\s*#?(\d+)/)?.[1] || "";
+
+    const timeSlot =
+      text.match(/Time Slots\s*:\s*(.*?)(,|$)/)?.[1]?.trim() || "";
+
+    const address =
+      text.match(/Address\s*:\s*(.*?)(?=$)/s)?.[1]?.trim() || "";
+
+    const map =
+      card.querySelector('a[href*="google.com/maps"]')?.href || "";
+
+    let lat = "";
+    let lng = "";
+
+    if (map) {
+      const m = map.match(/query=([-0-9.]+),([-0-9.]+)/);
+      if (m) {
+        lat = m[1];
+        lng = m[2];
+      }
+    }
+
+    const date =
+      text.match(/\d{1,2}(st|nd|rd|th)\s+\w+\s+\d{4}/)?.[0] || "";
+
+    const createdTime =
+      text.match(/\d{1,2}:\d{2}\s*(am|pm)/i)?.[0] || "";
+
+    // Simple area extraction
+    let area = "";
+    if (address) {
+      const parts = address.split(",").map(s => s.trim());
+      area = parts[1] || parts[0] || "";
+    }
+
+    orders.push({
+      orderNo,
+      onlineId,
+      name,
+      phone,
+      date,
+      createdTime,
+      timeSlot,
+      address,
+      area,
+      lat,
+      lng,
+      map
+    });
+
+  });
+
+  return orders;
+}
+function createDeliveryDashboard() {
+
+  if (document.getElementById("delivery-dashboard")) return;
+
+  const dashboard = document.createElement("div");
+  dashboard.id = "delivery-dashboard";
+
+  dashboard.style.cssText = `
+    position:fixed;
+    left:20px;
+    top:20px;
+    width:380px;
+    max-height:85vh;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:16px;
+    box-shadow:0 20px 40px rgba(0,0,0,.18);
+    z-index:999999;
+    overflow:hidden;
+    font-family:Arial,sans-serif;
+  `;
+
+  dashboard.innerHTML = `
+    <div id="delivery-header" style="
+      background:#0ea5e9;
+      color:#fff;
+      padding:14px 16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      cursor:move;
+    ">
+      <div>
+        <div style="font-size:18px;font-weight:700;">🚚 Delivery Dashboard</div>
+        <div style="font-size:12px;opacity:.9;">Live order view</div>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button id="delivery-refresh" style="
+          border:none;
+          background:rgba(255,255,255,.2);
+          color:#fff;
+          border-radius:8px;
+          padding:6px 10px;
+          cursor:pointer;
+        ">↻</button>
+
+        <button id="delivery-close" style="
+          border:none;
+          background:rgba(255,255,255,.2);
+          color:#fff;
+          border-radius:8px;
+          padding:6px 10px;
+          cursor:pointer;
+        ">✕</button>
+      </div>
+    </div>
+
+    <div style="padding:14px;">
+
+      <input id="delivery-search" placeholder="Search order, name, phone, area..." style="
+        width:100%;
+        padding:10px;
+        border:1px solid #ddd;
+        border-radius:10px;
+        box-sizing:border-box;
+        margin-bottom:12px;
+      ">
+
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(2,1fr);
+        gap:8px;
+        margin-bottom:12px;
+      ">
+
+        <div style="background:#f8fafc;padding:10px;border-radius:12px;border:1px solid #e2e8f0;">
+          <div style="font-size:12px;color:#64748b;">Total Orders</div>
+          <div id="stat-total" style="font-size:24px;font-weight:700;">0</div>
+        </div>
+
+        <div style="background:#f8fafc;padding:10px;border-radius:12px;border:1px solid #e2e8f0;">
+          <div style="font-size:12px;color:#64748b;">Areas</div>
+          <div id="stat-areas" style="font-size:24px;font-weight:700;">0</div>
+        </div>
+
+      </div>
+
+      <div style="margin-bottom:12px;">
+
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
+          <span>🟢 10-2</span>
+          <strong id="slot-10-2">0</strong>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
+          <span>🟠 2-6</span>
+          <strong id="slot-2-6">0</strong>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span>🔴 6-10</span>
+          <strong id="slot-6-10">0</strong>
+        </div>
+
+      </div>
+
+      <div id="delivery-list" style="
+        max-height:48vh;
+        overflow:auto;
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+      "></div>
+
+    </div>
+  `;
+
+  document.body.appendChild(dashboard);
+
+  makeDashboardDraggable(
+    dashboard,
+    dashboard.querySelector("#delivery-header")
+  );
+
+  dashboard.querySelector("#delivery-close").onclick = () => {
+    dashboard.remove();
+  };
+
+  dashboard.querySelector("#delivery-refresh").onclick = renderDeliveryDashboard;
+
+  dashboard.querySelector("#delivery-search").addEventListener(
+    "input",
+    renderDeliveryDashboard
+  );
+
+  renderDeliveryDashboard();
+}
+function renderDeliveryDashboard() {
+
+  const orders = extractOrders();
+
+  const search = (
+    document.getElementById("delivery-search")?.value || ""
+  ).toLowerCase();
+
+  const filtered = orders.filter(o => {
+
+    const haystack = [
+      o.orderNo,
+      o.name,
+      o.phone,
+      o.area,
+      o.address
+    ].join(" ").toLowerCase();
+
+    return haystack.includes(search);
+  });
+
+  // Stats
+  document.getElementById("stat-total").textContent = filtered.length;
+
+  const areas = new Set(filtered.map(o => o.area).filter(Boolean));
+  document.getElementById("stat-areas").textContent = areas.size;
+
+  document.getElementById("slot-10-2").textContent =
+    filtered.filter(o => /10.*2/i.test(o.timeSlot)).length;
+
+  document.getElementById("slot-2-6").textContent =
+    filtered.filter(o => /2.*6/i.test(o.timeSlot)).length;
+
+  document.getElementById("slot-6-10").textContent =
+    filtered.filter(o => /6.*10/i.test(o.timeSlot)).length;
+
+  // Render list
+  const list = document.getElementById("delivery-list");
+  list.innerHTML = "";
+
+  filtered.forEach(order => {
+
+    const card = document.createElement("div");
+
+    card.style.cssText = `
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      padding:10px;
+      background:#fff;
+      cursor:pointer;
+    `;
+
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <div>
+          <div style="font-weight:700;font-size:15px;">#${order.orderNo}</div>
+          <div style="color:#64748b;font-size:12px;">${order.onlineId ? 'Online #'+order.onlineId : ''}</div>
+        </div>
+
+        <div style="
+          background:#f1f5f9;
+          border-radius:999px;
+          padding:4px 8px;
+          font-size:11px;
+          font-weight:600;
+        ">
+          ${order.timeSlot || 'No Slot'}
+        </div>
+      </div>
+
+      <div style="margin-top:8px;font-weight:600;">👤 ${order.name}</div>
+      <div style="font-size:13px;color:#334155;margin-top:2px;">📞 ${order.phone}</div>
+      <div style="font-size:13px;color:#334155;margin-top:2px;">📍 ${order.area}</div>
+
+      <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.4;">
+        ${order.address}
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:10px;">
+
+        <button class="copy-address-btn" data-address="${order.address.replace(/"/g, '&quot;')}" style="
+          flex:1;
+          border:none;
+          background:#f1f5f9;
+          border-radius:8px;
+          padding:8px;
+          cursor:pointer;
+          font-size:12px;
+          font-weight:600;
+        ">📋 Copy Address</button>
+
+        <button class="open-map-btn" data-map="${order.map}" style="
+          flex:1;
+          border:none;
+          background:#0ea5e9;
+          color:#fff;
+          border-radius:8px;
+          padding:8px;
+          cursor:pointer;
+          font-size:12px;
+          font-weight:600;
+        ">🗺 Open Map</button>
+
+      </div>
+    `;
+
+    list.appendChild(card);
+  });
+
+  // Copy buttons
+  list.querySelectorAll(".copy-address-btn").forEach(btn => {
+
+    btn.onclick = function(e) {
+      e.stopPropagation();
+
+      navigator.clipboard.writeText(this.dataset.address);
+
+      const old = this.textContent;
+      this.textContent = "✅ Copied";
+
+      setTimeout(() => {
+        this.textContent = old;
+      }, 1200);
+    };
+  });
+
+  // Map buttons
+  list.querySelectorAll(".open-map-btn").forEach(btn => {
+
+    btn.onclick = function(e) {
+      e.stopPropagation();
+
+      if (this.dataset.map) {
+        window.open(this.dataset.map, "_blank");
+      }
+    };
+  });
+}
+function makeDashboardDraggable(container, handle) {
+
+  let startX, startY, startLeft, startTop, dragging = false;
+
+  handle.addEventListener("mousedown", start);
+
+  function start(e) {
+
+    dragging = true;
+
+    startX = e.clientX;
+    startY = e.clientY;
+
+    const rect = container.getBoundingClientRect();
+
+    startLeft = rect.left;
+    startTop = rect.top;
+
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", end);
+  }
+
+  function move(e) {
+
+    if (!dragging) return;
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    container.style.left = startLeft + dx + "px";
+    container.style.top = startTop + dy + "px";
+    container.style.right = "auto";
+  }
+
+  function end() {
+
+    dragging = false;
+
+    document.removeEventListener("mousemove", move);
+    document.removeEventListener("mouseup", end);
+  }
+}
+setTimeout(function () {
+  createDeliveryDashboard();
+}, 1500);
 const shortcuts = {
   n: () => document.getElementById("NewOrderButton")?.click(),
   f: () => document.querySelector("#recaho-filler-widget > div")?.click(),
