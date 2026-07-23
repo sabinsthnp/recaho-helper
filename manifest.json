@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Recaho Floating Form Filler",
+  "name": "Recaho Extender",
   "version": "3.2",
-  "description": "Floating draggable order text filler for bookingForm",
+  "description": "Extend your recaho features",
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
