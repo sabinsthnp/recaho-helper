@@ -412,6 +412,96 @@ function extractOrders() {
 
   return orders;
 }
+function createDeliveryToolbar(){
+ if (document.getElementById("delivery-toolbar")) return;
+
+  const toolbar = document.createElement("div");
+  toolbar.id = "delivery-toolbar";
+  toolbar.style.cssText = `
+       cursor:pointer;
+
+  `;
+toolbar.innerHTML = `
+<div style="
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:8px 12px;
+    margin-right:12px;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:8px;
+box-shadow: 2px 2px #8f8f8f;
+">
+
+    <div style="
+        font-size:14px;
+        font-weight:600;
+        color:#333;
+        white-space:nowrap;
+    ">
+        🚚 Delivery Stats
+    </div>
+
+    <div style="display:flex;gap:8px;">
+
+        <div style="
+            display:flex;
+            align-items:center;
+            gap:5px;
+            padding:5px 8px;
+            background:#ecfdf5;
+            border:1px solid #bbf7d0;
+            border-radius:6px;
+            font-size:12px;
+            font-weight:600;
+            color:#166534;
+        ">
+            <span>🟢 10-2</span>
+            <span id="slot-10-2" style="font-size:16px;">0</span>
+        </div>
+
+        <div style="
+            display:flex;
+            align-items:center;
+            gap:5px;
+            padding:5px 8px;
+            background:#fff7ed;
+            border:1px solid #fed7aa;
+            border-radius:6px;
+            font-size:12px;
+            font-weight:600;
+            color:#9a3412;
+        ">
+            <span>🟠 2-6</span>
+            <span id="slot-2-6" style="font-size:16px;">0</span>
+        </div>
+
+        <div style="
+            display:flex;
+            align-items:center;
+            gap:5px;
+            padding:5px 8px;
+            background:#fef2f2;
+            border:1px solid #fecaca;
+            border-radius:6px;
+            font-size:12px;
+            font-weight:600;
+            color:#991b1b;
+        ">
+            <span>🔴 6-10</span>
+            <span id="slot-6-10" style="font-size:16px;">0</span>
+        </div>
+
+    </div>
+
+</div>
+`;toolbar.addEventListener('click', ()=>{
+createDeliveryDashboard();
+})
+  document.getElementById("NewOrderButton").closest("div").parentElement.prepend(toolbar);
+}
 function createDeliveryDashboard() {
 
   if (document.getElementById("delivery-dashboard")) return;
@@ -500,24 +590,7 @@ function createDeliveryDashboard() {
 
       </div>
 
-      <div style="margin-bottom:12px;">
-
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
-          <span>🟢 10-2</span>
-          <strong id="slot-10-2">0</strong>
-        </div>
-
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
-          <span>🟠 2-6</span>
-          <strong id="slot-2-6">0</strong>
-        </div>
-
-        <div style="display:flex;justify-content:space-between;font-size:13px;">
-          <span>🔴 6-10</span>
-          <strong id="slot-6-10">0</strong>
-        </div>
-
-      </div>
+      
 
       <div id="delivery-list" style="
         max-height:48vh;
@@ -938,7 +1011,7 @@ function makeDashboardDraggable(container, handle) {
   }
 }
 setTimeout(function () {
-  createDeliveryDashboard();
+  createDeliveryToolbar();
 }, 1500);
 const shortcuts = {
   n: () => document.getElementById("NewOrderButton")?.click(),
