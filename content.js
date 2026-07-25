@@ -13,7 +13,7 @@
     createWidget();
   }
 
-  waitForForm();
+  createWidget();
 
   function createWidget() {
 
@@ -129,7 +129,6 @@ Preferred Time Slot (10–2 / 2–6 / 6–10):</textarea>
       opened = true;
       button.style.display = "none";
       panel.style.display = "block";
-createDeliveryDashboard();
     };
 
     panel.querySelector("#recaho-min-btn").onclick = () => {
@@ -623,10 +622,30 @@ function createDeliveryDashboard() {
 
   renderDeliveryDashboard();
 }
+async function uploadOrders(orders) {
+  try {
+    const response = await fetch(
+      "https://fancy-dolphin-3f263d.netlify.app/api/orders-update",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(orders)
+      }
+    );
+
+    const result = await response.json();
+
+    console.log("Success:", result);
+  } catch (err) {
+    console.error("Upload failed:", err);
+  }
+}
 function renderDeliveryDashboard() {
 
   const orders = extractOrders();
-
+  uploadOrders(orders)
   const search = (
     document.getElementById("delivery-search")?.value || ""
   ).toLowerCase();
