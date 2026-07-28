@@ -1,17 +1,5 @@
 (function() {
 
-  function waitForForm() {
-    const form = document.getElementById("bookingForm");
-    if (!form) {
-      setTimeout(waitForForm, 800);
-      return;
-    }
-
-    if (document.getElementById("recaho-filler-widget")) return;
-
-
-    createWidget();
-  }
 
   createWidget();
 
@@ -336,91 +324,91 @@ Preferred Time Slot (10–2 / 2–6 / 6–10):</textarea>
 
     return result;
   }
-function extractOrders() {
+  function extractOrders() {
 
-  const orders = [];
+    const orders = [];
 
-  document.querySelectorAll(".customer-basic-details").forEach(customer => {
+    document.querySelectorAll(".customer-basic-details").forEach(customer => {
 
-    const card = customer.closest(".ant-col-12");
-    if (!card) return;
+      const card = customer.closest(".ant-col-12");
+      if (!card) return;
 
-    const text = card.innerText;
+      const text = card.innerText;
 
-    const name =
-      customer.querySelector("span")?.innerText.trim() || "";
+      const name =
+        customer.querySelector("span")?.innerText.trim() || "";
 
-    const phone =
-      text.match(/\b05\d{8}\b/)?.[0] || "";
+      const phone =
+        text.match(/\b05\d{8}\b/)?.[0] || "";
 
-    const orderNo =
-      text.match(/Order No:\s*(\d+)/)?.[1] || "";
+      const orderNo =
+        text.match(/Order No:\s*(\d+)/)?.[1] || "";
 
-    const onlineId =
-      text.match(/Online Order ID\s*:\s*#?(\d+)/)?.[1] || "";
+      const onlineId =
+        text.match(/Online Order ID\s*:\s*#?(\d+)/)?.[1] || "";
 
-    const timeSlot =
-      text.match(/Time Slots\s*:\s*(.*?)(,|$)/)?.[1]?.trim() || "";
+      const timeSlot =
+        text.match(/Time Slots\s*:\s*(.*?)(,|$)/)?.[1]?.trim() || "";
 
-    const address =
-      text.match(/Address\s*:\s*(.*?)(?=$)/s)?.[1]?.trim() || "";
+      const address =
+        text.match(/Address\s*:\s*(.*?)(?=$)/s)?.[1]?.trim() || "";
 
-    const map =
-      card.querySelector('a[href*="google.com/maps"]')?.href || "";
+      const map =
+        card.querySelector('a[href*="google.com/maps"]')?.href || "";
 
-    let lat = "";
-    let lng = "";
+      let lat = "";
+      let lng = "";
 
-    if (map) {
-      const m = map.match(/query=([-0-9.]+),([-0-9.]+)/);
-      if (m) {
-        lat = m[1];
-        lng = m[2];
+      if (map) {
+        const m = map.match(/query=([-0-9.]+),([-0-9.]+)/);
+        if (m) {
+          lat = m[1];
+          lng = m[2];
+        }
       }
-    }
 
-    const date =
-      text.match(/\d{1,2}(st|nd|rd|th)\s+\w+\s+\d{4}/)?.[0] || "";
+      const date =
+        text.match(/\d{1,2}(st|nd|rd|th)\s+\w+\s+\d{4}/)?.[0] || "";
 
-    const createdTime =
-      text.match(/\d{1,2}:\d{2}\s*(am|pm)/i)?.[0] || "";
+      const createdTime =
+        text.match(/\d{1,2}:\d{2}\s*(am|pm)/i)?.[0] || "";
 
-    // Simple area extraction
-    let area = "";
-    if (address) {
-      const parts = address.split(",").map(s => s.trim());
-      area = parts[1] || parts[0] || "";
-    }
+      // Simple area extraction
+      let area = "";
+      if (address) {
+        const parts = address.split(",").map(s => s.trim());
+        area = parts[1] || parts[0] || "";
+      }
 
-    orders.push({
-      orderNo,
-      onlineId,
-      name,
-      phone,
-      date,
-      createdTime,
-      timeSlot,
-      address,
-      area,
-      lat,
-      lng,
-      map
+      orders.push({
+        orderNo,
+        onlineId,
+        name,
+        phone,
+        date,
+        createdTime,
+        timeSlot,
+        address,
+        area,
+        lat,
+        lng,
+        map
+      });
+
     });
 
-  });
+    return orders;
+  }
+  function createDeliveryToolbar() {
+    if (document.getElementById("delivery-toolbar")) return;
 
-  return orders;
-}
-function createDeliveryToolbar(){
- if (document.getElementById("delivery-toolbar")) return;
-
-  const toolbar = document.createElement("div");
-  toolbar.id = "delivery-toolbar";
-  toolbar.style.cssText = `
+    const toolbar = document.createElement("div");
+    toolbar.id = "delivery-toolbar";
+    toolbar.style.cssText = `
        cursor:pointer;
 
   `;
-toolbar.innerHTML = `
+    toolbar.innerHTML = `
 <div style="
     display:flex;
     align-items:center;
@@ -496,19 +484,19 @@ box-shadow: 2px 2px #8f8f8f;
     </div>
 
 </div>
-`;toolbar.addEventListener('click', ()=>{
-createDeliveryDashboard();
-})
-  document.getElementById("NewOrderButton").closest("div").parentElement.prepend(toolbar);
-}
-function createDeliveryDashboard() {
+`; toolbar.addEventListener('click', () => {
+      createDeliveryDashboard();
+    })
+    document.getElementById("NewOrderButton").closest("div").parentElement.prepend(toolbar);
+  }
+  function createDeliveryDashboard() {
 
-  if (document.getElementById("delivery-dashboard")) return;
+    if (document.getElementById("delivery-dashboard")) return;
 
-  const dashboard = document.createElement("div");
-  dashboard.id = "delivery-dashboard";
+    const dashboard = document.createElement("div");
+    dashboard.id = "delivery-dashboard";
 
-  dashboard.style.cssText = `
+    dashboard.style.cssText = `
     position:fixed;
     left:20px;
     top:20px;
@@ -523,7 +511,7 @@ function createDeliveryDashboard() {
     font-family:Arial,sans-serif;
   `;
 
-  dashboard.innerHTML = `
+    dashboard.innerHTML = `
     <div id="delivery-header" style="
       background:#0ea5e9;
       color:#fff;
@@ -602,88 +590,88 @@ function createDeliveryDashboard() {
     </div>
   `;
 
-  document.body.appendChild(dashboard);
+    document.body.appendChild(dashboard);
 
-  makeDashboardDraggable(
-    dashboard,
-    dashboard.querySelector("#delivery-header")
-  );
-
-  dashboard.querySelector("#delivery-close").onclick = () => {
-    dashboard.remove();
-  };
-
-  dashboard.querySelector("#delivery-refresh").onclick = renderDeliveryDashboard;
-
-  dashboard.querySelector("#delivery-search").addEventListener(
-    "input",
-    renderDeliveryDashboard
-  );
-
-  renderDeliveryDashboard();
-}
-async function uploadOrders(orders) {
-  try {
-    const response = await fetch(
-      "https://fancy-dolphin-3f263d.netlify.app/api/orders-update",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(orders)
-      }
+    makeDashboardDraggable(
+      dashboard,
+      dashboard.querySelector("#delivery-header")
     );
 
-    const result = await response.json();
+    dashboard.querySelector("#delivery-close").onclick = () => {
+      dashboard.remove();
+    };
 
-    console.log("Success:", result);
-  } catch (err) {
-    console.error("Upload failed:", err);
+    dashboard.querySelector("#delivery-refresh").onclick = renderDeliveryDashboard;
+
+    dashboard.querySelector("#delivery-search").addEventListener(
+      "input",
+      renderDeliveryDashboard
+    );
+
+    renderDeliveryDashboard();
   }
-}
-function renderDeliveryDashboard() {
+  async function uploadOrders(orders) {
+    try {
+      const response = await fetch(
+        "https://recaho-helper-api.onrender.com/api/orders-update",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(orders)
+        }
+      );
 
-  const orders = extractOrders();
-  uploadOrders(orders)
-  const search = (
-    document.getElementById("delivery-search")?.value || ""
-  ).toLowerCase();
+      const result = await response.json();
 
-  const filtered = orders.filter(o => {
+      console.log("Success:", result);
+    } catch (err) {
+      console.error("Upload failed:", err);
+    }
+  }
+  function renderDeliveryDashboard() {
 
-    const haystack = [
-      o.orderNo,
-      o.name,
-      o.phone,
-      o.area,
-      o.address
-    ].join(" ").toLowerCase();
+    const orders = extractOrders();
+    uploadOrders(orders)
+    const search = (
+      document.getElementById("delivery-search")?.value || ""
+    ).toLowerCase();
 
-    return haystack.includes(search);
-  });
+    const filtered = orders.filter(o => {
 
-  // Stats
-  document.getElementById("stat-total").textContent = filtered.length;
+      const haystack = [
+        o.orderNo,
+        o.name,
+        o.phone,
+        o.area,
+        o.address
+      ].join(" ").toLowerCase();
 
-  const areas = new Set(filtered.map(o => o.area).filter(Boolean));
-  document.getElementById("stat-areas").textContent = areas.size;
+      return haystack.includes(search);
+    });
 
-  document.getElementById("slot-10-2").textContent =
-    filtered.filter(o => /10.*2/i.test(o.timeSlot)).length;
+    // Stats
+    document.getElementById("stat-total").textContent = filtered.length;
 
-  document.getElementById("slot-2-6").textContent =
-    filtered.filter(o => /2.*6/i.test(o.timeSlot)).length;
+    const areas = new Set(filtered.map(o => o.area).filter(Boolean));
+    document.getElementById("stat-areas").textContent = areas.size;
 
-  document.getElementById("slot-6-10").textContent =
-    filtered.filter(o => /6.*10/i.test(o.timeSlot)).length;
+    document.getElementById("slot-10-2").textContent =
+      filtered.filter(o => /10.*2/i.test(o.timeSlot)).length;
 
-  // Render list
-  const list = document.getElementById("delivery-list");
-  list.innerHTML = "";
+    document.getElementById("slot-2-6").textContent =
+      filtered.filter(o => /2.*6/i.test(o.timeSlot)).length;
+
+    document.getElementById("slot-6-10").textContent =
+      filtered.filter(o => /6.*10/i.test(o.timeSlot)).length;
+
+    // Render list
+    const list = document.getElementById("delivery-list");
+    list.innerHTML = "";
 
 
-list.innerHTML = `
+    list.innerHTML = `
 <div style="display:flex;gap:12px;height:100%;">
 
     <div id="driver-a"
@@ -751,25 +739,25 @@ list.innerHTML = `
 </div>
 `;
 
-const driverA = document.querySelector("#driver-a .driver-list");
-const driverB = document.querySelector("#driver-b .driver-list");
+    const driverA = document.querySelector("#driver-a .driver-list");
+    const driverB = document.querySelector("#driver-b .driver-list");
 
-filtered.forEach((order, index) => {
+    filtered.forEach((order, index) => {
 
-    const slotColor =
+      const slotColor =
         /10.*2/i.test(order.timeSlot)
-            ? "#22c55e"
-            : /2.*6/i.test(order.timeSlot)
+          ? "#22c55e"
+          : /2.*6/i.test(order.timeSlot)
             ? "#f59e0b"
             : /6.*10/i.test(order.timeSlot)
-            ? "#ef4444"
-            : "#94a3b8";
+              ? "#ef4444"
+              : "#94a3b8";
 
-    const card = document.createElement("div");
+      const card = document.createElement("div");
 
-    card.draggable = true;
+      card.draggable = true;
 
-    card.style.cssText = `
+      card.style.cssText = `
         border:1px solid #ddd;
         border-radius:10px;
         background:white;
@@ -779,7 +767,7 @@ filtered.forEach((order, index) => {
         box-shadow:0 2px 6px rgba(0,0,0,.08);
     `;
 
-    card.innerHTML = `
+      card.innerHTML = `
         <div style="display:flex;justify-content:space-between;">
 
             <div>
@@ -834,7 +822,7 @@ filtered.forEach((order, index) => {
 
             <button
                 class="copy-address-btn"
-                data-address="${order.address.replace(/"/g,"&quot;")}"
+                data-address="${order.address.replace(/"/g, "&quot;")}"
                 style="
                     flex:1;
                     border:none;
@@ -864,196 +852,196 @@ filtered.forEach((order, index) => {
         </div>
     `;
 
-    card.addEventListener("dragstart", function () {
+      card.addEventListener("dragstart", function() {
         window.draggedCard = this;
+      });
+
+      (index % 2 === 0 ? driverA : driverB).appendChild(card);
+
     });
 
-    (index % 2 === 0 ? driverA : driverB).appendChild(card);
+    document.querySelectorAll(".driver-list").forEach(col => {
 
-});
-
-document.querySelectorAll(".driver-list").forEach(col => {
-
-    col.addEventListener("dragover", function (e) {
+      col.addEventListener("dragover", function(e) {
         e.preventDefault();
-    });
+      });
 
-    col.addEventListener("drop", function (e) {
+      col.addEventListener("drop", function(e) {
 
         e.preventDefault();
 
         if (window.draggedCard) {
-            this.appendChild(window.draggedCard);
+          this.appendChild(window.draggedCard);
         }
 
+      });
+
     });
+    // filtered.forEach(order => {
 
-});
-  // filtered.forEach(order => {
+    //   const card = document.createElement("div");
 
-  //   const card = document.createElement("div");
+    //   card.style.cssText = `
+    //     border:1px solid #e5e7eb;
+    //     border-radius:12px;
+    //     padding:10px;
+    //     background:#fff;
+    //     cursor:pointer;
+    //   `;
 
-  //   card.style.cssText = `
-  //     border:1px solid #e5e7eb;
-  //     border-radius:12px;
-  //     padding:10px;
-  //     background:#fff;
-  //     cursor:pointer;
-  //   `;
+    //   card.innerHTML = `
+    //     <div style="display:flex;justify-content:space-between;align-items:start;">
+    //       <div>
+    //         <div style="font-weight:700;font-size:15px;">#${order.orderNo}</div>
+    //         <div style="color:#64748b;font-size:12px;">${order.onlineId ? 'Online #'+order.onlineId : ''}</div>
+    //       </div>
 
-  //   card.innerHTML = `
-  //     <div style="display:flex;justify-content:space-between;align-items:start;">
-  //       <div>
-  //         <div style="font-weight:700;font-size:15px;">#${order.orderNo}</div>
-  //         <div style="color:#64748b;font-size:12px;">${order.onlineId ? 'Online #'+order.onlineId : ''}</div>
-  //       </div>
+    //       <div style="
+    //         background:#f1f5f9;
+    //         border-radius:999px;
+    //         padding:4px 8px;
+    //         font-size:11px;
+    //         font-weight:600;
+    //       ">
+    //         ${order.timeSlot || 'No Slot'}
+    //       </div>
+    //     </div>
 
-  //       <div style="
-  //         background:#f1f5f9;
-  //         border-radius:999px;
-  //         padding:4px 8px;
-  //         font-size:11px;
-  //         font-weight:600;
-  //       ">
-  //         ${order.timeSlot || 'No Slot'}
-  //       </div>
-  //     </div>
+    //     <div style="margin-top:8px;font-weight:600;">👤 ${order.name}</div>
+    //     <div style="font-size:13px;color:#334155;margin-top:2px;">📞 ${order.phone}</div>
+    //     <div style="font-size:13px;color:#334155;margin-top:2px;">📍 ${order.area}</div>
 
-  //     <div style="margin-top:8px;font-weight:600;">👤 ${order.name}</div>
-  //     <div style="font-size:13px;color:#334155;margin-top:2px;">📞 ${order.phone}</div>
-  //     <div style="font-size:13px;color:#334155;margin-top:2px;">📍 ${order.area}</div>
+    //     <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.4;">
+    //       ${order.address}
+    //     </div>
 
-  //     <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.4;">
-  //       ${order.address}
-  //     </div>
+    //     <div style="display:flex;gap:8px;margin-top:10px;">
 
-  //     <div style="display:flex;gap:8px;margin-top:10px;">
+    //       <button class="copy-address-btn" data-address="${order.address.replace(/"/g, '&quot;')}" style="
+    //         flex:1;
+    //         border:none;
+    //         background:#f1f5f9;
+    //         border-radius:8px;
+    //         padding:8px;
+    //         cursor:pointer;
+    //         font-size:12px;
+    //         font-weight:600;
+    //       ">📋 Copy Address</button>
 
-  //       <button class="copy-address-btn" data-address="${order.address.replace(/"/g, '&quot;')}" style="
-  //         flex:1;
-  //         border:none;
-  //         background:#f1f5f9;
-  //         border-radius:8px;
-  //         padding:8px;
-  //         cursor:pointer;
-  //         font-size:12px;
-  //         font-weight:600;
-  //       ">📋 Copy Address</button>
+    //       <button class="open-map-btn" data-map="${order.map}" style="
+    //         flex:1;
+    //         border:none;
+    //         background:#0ea5e9;
+    //         color:#fff;
+    //         border-radius:8px;
+    //         padding:8px;
+    //         cursor:pointer;
+    //         font-size:12px;
+    //         font-weight:600;
+    //       ">🗺 Open Map</button>
 
-  //       <button class="open-map-btn" data-map="${order.map}" style="
-  //         flex:1;
-  //         border:none;
-  //         background:#0ea5e9;
-  //         color:#fff;
-  //         border-radius:8px;
-  //         padding:8px;
-  //         cursor:pointer;
-  //         font-size:12px;
-  //         font-weight:600;
-  //       ">🗺 Open Map</button>
+    //     </div>
+    //   `;
 
-  //     </div>
-  //   `;
+    //   list.appendChild(card);
+    // });
 
-  //   list.appendChild(card);
-  // });
+    // // Copy buttons
+    // list.querySelectorAll(".copy-address-btn").forEach(btn => {
 
-  // // Copy buttons
-  // list.querySelectorAll(".copy-address-btn").forEach(btn => {
+    //   btn.onclick = function(e) {
+    //     e.stopPropagation();
 
-  //   btn.onclick = function(e) {
-  //     e.stopPropagation();
+    //     navigator.clipboard.writeText(this.dataset.address);
 
-  //     navigator.clipboard.writeText(this.dataset.address);
+    //     const old = this.textContent;
+    //     this.textContent = "✅ Copied";
 
-  //     const old = this.textContent;
-  //     this.textContent = "✅ Copied";
+    //     setTimeout(() => {
+    //       this.textContent = old;
+    //     }, 1200);
+    //   };
+    // });
 
-  //     setTimeout(() => {
-  //       this.textContent = old;
-  //     }, 1200);
-  //   };
-  // });
+    // // Map buttons
+    // list.querySelectorAll(".open-map-btn").forEach(btn => {
 
-  // // Map buttons
-  // list.querySelectorAll(".open-map-btn").forEach(btn => {
+    //   btn.onclick = function(e) {
+    //     e.stopPropagation();
 
-  //   btn.onclick = function(e) {
-  //     e.stopPropagation();
-
-  //     if (this.dataset.map) {
-  //       window.open(this.dataset.map, "_blank");
-  //     }
-  //   };
-  // });
-}
-function makeDashboardDraggable(container, handle) {
-
-  let startX, startY, startLeft, startTop, dragging = false;
-
-  handle.addEventListener("mousedown", start);
-
-  function start(e) {
-
-    dragging = true;
-
-    startX = e.clientX;
-    startY = e.clientY;
-
-    const rect = container.getBoundingClientRect();
-
-    startLeft = rect.left;
-    startTop = rect.top;
-
-    document.addEventListener("mousemove", move);
-    document.addEventListener("mouseup", end);
+    //     if (this.dataset.map) {
+    //       window.open(this.dataset.map, "_blank");
+    //     }
+    //   };
+    // });
   }
+  function makeDashboardDraggable(container, handle) {
 
-  function move(e) {
+    let startX, startY, startLeft, startTop, dragging = false;
 
-    if (!dragging) return;
+    handle.addEventListener("mousedown", start);
 
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
+    function start(e) {
 
-    container.style.left = startLeft + dx + "px";
-    container.style.top = startTop + dy + "px";
-    container.style.right = "auto";
+      dragging = true;
+
+      startX = e.clientX;
+      startY = e.clientY;
+
+      const rect = container.getBoundingClientRect();
+
+      startLeft = rect.left;
+      startTop = rect.top;
+
+      document.addEventListener("mousemove", move);
+      document.addEventListener("mouseup", end);
+    }
+
+    function move(e) {
+
+      if (!dragging) return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      container.style.left = startLeft + dx + "px";
+      container.style.top = startTop + dy + "px";
+      container.style.right = "auto";
+    }
+
+    function end() {
+
+      dragging = false;
+
+      document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", end);
+    }
   }
+  setTimeout(function() {
+    createDeliveryToolbar();
+  }, 1500);
+  const shortcuts = {
+    n: () => document.getElementById("NewOrderButton")?.click(),
+    f: () => document.querySelector("#recaho-filler-widget > div")?.click(),
+    escape: () => document.getElementById("recaho-min-btn")?.click(),
+    enter: () => document.getElementById("recaho-fill-btn")?.click(),
+  };
 
-  function end() {
+  document.addEventListener("keydown", (e) => {
+    const tag = document.activeElement?.tagName;
 
-    dragging = false;
+    if (
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      document.activeElement?.isContentEditable
+    ) {
+      return;
+    }
 
-    document.removeEventListener("mousemove", move);
-    document.removeEventListener("mouseup", end);
-  }
-}
-setTimeout(function () {
-  createDeliveryToolbar();
-}, 1500);
-const shortcuts = {
-  n: () => document.getElementById("NewOrderButton")?.click(),
-  f: () => document.querySelector("#recaho-filler-widget > div")?.click(),
-  escape: () => document.getElementById("recaho-min-btn")?.click(),
-  enter: () => document.getElementById("recaho-fill-btn")?.click(),
-};
-
-document.addEventListener("keydown", (e) => {
-  const tag = document.activeElement?.tagName;
-
-  if (
-    tag === "INPUT" ||
-    tag === "TEXTAREA" ||
-    document.activeElement?.isContentEditable
-  ) {
-    return;
-  }
-
-  const action = shortcuts[e.key.toLowerCase()];
-  if (action) {
-    e.preventDefault();
-    action();
-  }
-});
+    const action = shortcuts[e.key.toLowerCase()];
+    if (action) {
+      e.preventDefault();
+      action();
+    }
+  });
 })();
