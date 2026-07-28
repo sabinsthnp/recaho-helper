@@ -3,6 +3,17 @@
   "name": "Recaho Extender",
   "version": "3.2",
   "description": "Extend your recaho features",
+  "icons": {
+
+    "16": "icons/rehelper.png",
+
+    "32": "icons/rehelper.png",
+
+    "48": "icons/rehelper.png",
+
+    "128": "icons/rehelper.png"
+
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
