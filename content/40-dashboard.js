@@ -181,13 +181,7 @@ box-shadow: 2px 2px #8f8f8f;
 
 
 
-      <div id="delivery-list" style="
-        max-height:48vh;
-        overflow:auto;
-        display:flex;
-        flex-direction:column;
-        gap:8px;
-      "></div>
+      <div id="delivery-list"></div>
 
     </div>
   `;
@@ -253,129 +247,142 @@ box-shadow: 2px 2px #8f8f8f;
     document.getElementById("slot-6-10").textContent =
       filtered.filter(o => /6.*10/i.test(o.timeSlot)).length;
 
-    // Render list
+    // Render sheet
     const list = document.getElementById("delivery-list");
     list.innerHTML = "";
 
-    filtered.forEach((order) => {
+    renderOrdersSheet(list, filtered);
+  }
 
-      const slotColor =
-        /10.*2/i.test(order.timeSlot)
-          ? "#22c55e"
-          : /2.*6/i.test(order.timeSlot)
-            ? "#f59e0b"
-            : /6.*10/i.test(order.timeSlot)
-              ? "#ef4444"
-              : "#94a3b8";
+  const SHEET_COLUMNS = [
+    { field: "orderNo", label: "Order No" },
+    { field: "onlineId", label: "Online ID" },
+    { field: "name", label: "Name" },
+    { field: "phone", label: "Phone" },
+    { field: "date", label: "Date" },
+    { field: "createdTime", label: "Created" },
+    { field: "timeSlot", label: "Time Slot" },
+    { field: "address", label: "Address" },
+    { field: "remarks", label: "Remarks" },
+    { field: "captain", label: "Captain" },
+    { field: "area", label: "Area" },
+    { field: "lat", label: "Lat" },
+    { field: "lng", label: "Lng" },
+    { field: "map", label: "Map", type: "link" },
+    { field: "image", label: "Image", type: "image-link" }
+  ];
 
-      const card = document.createElement("div");
+  function renderOrdersSheet(container, orders) {
 
-      card.style.cssText = `
-        border:1px solid #ddd;
-        border-radius:10px;
-        background:white;
-        padding:10px;
-        margin-bottom:10px;
-        box-shadow:0 2px 6px rgba(0,0,0,.08);
+    const wrap = document.createElement("div");
+    wrap.style.cssText = `
+      overflow:auto;
+      max-height:48vh;
+      border:1px solid #e2e8f0;
+      border-radius:10px;
     `;
 
-      card.innerHTML = `
-        <div style="display:flex;justify-content:space-between;">
-
-            <div>
-
-                <div style="font-weight:bold;">
-                    #${order.orderNo}
-                </div>
-
-                <div style="font-size:12px;color:#666;">
-                    ${order.name}
-                </div>
-
-            </div>
-
-            <div
-                style="
-                    background:${slotColor};
-                    color:white;
-                    padding:6px;
-                    font-size:11px;
-                    font-weight:bold;
-                ">
-                ${order.timeSlot || "-"}
-            </div>
-            <a href="${order?.image?.url || "#"}"
-            target="_blank"
-                style="
-                    background:${slotColor};
-                    color:white;
-                    padding:6px;
-                    font-size:11px;
-                    font-weight:bold;
-                ">
-                ${order?.image?.uploadedAt || "-"}
-            </div>
-        </div>
-
-        <div style="margin-top:8px;font-size:13px;">
-            📞 ${order.phone}
-        </div>
-
-        <div style="margin-top:4px;font-size:13px;">
-            📍 ${order.area}
-        </div>
-
-        <div style="
-            margin-top:8px;
-            font-size:12px;
-            color:#666;
-            max-height:48px;
-            overflow:hidden;
-        ">
-            ${order.address}
-        </div>
-
-        <div style="
-            display:flex;
-            gap:6px;
-            margin-top:10px;
-        ">
-
-            <button
-                class="copy-address-btn"
-                data-address="${order.address.replace(/"/g, "&quot;")}"
-                style="
-                    flex:1;
-                    border:none;
-                    background:#f1f5f9;
-                    border-radius:6px;
-                    padding:6px;
-                    cursor:pointer;
-                ">
-                📋
-            </button>
-
-            <button
-                class="open-map-btn"
-                data-map="${order.map}"
-                style="
-                    flex:1;
-                    border:none;
-                    background:#0ea5e9;
-                    color:white;
-                    border-radius:6px;
-                    padding:6px;
-                    cursor:pointer;
-                ">
-                🗺
-            </button>
-
-        </div>
+    const table = document.createElement("table");
+    table.style.cssText = `
+      border-collapse:collapse;
+      width:100%;
+      font-size:12px;
+      white-space:nowrap;
     `;
 
-      list.appendChild(card);
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
 
+    SHEET_COLUMNS.forEach(col => {
+      const th = document.createElement("th");
+      th.textContent = col.label;
+      th.style.cssText = `
+        position:sticky;
+        top:0;
+        background:#f1f5f9;
+        color:#475569;
+        text-align:left;
+        padding:8px 10px;
+        border-bottom:2px solid #e2e8f0;
+        border-right:1px solid #e2e8f0;
+        z-index:1;
+      `;
+      headRow.appendChild(th);
     });
+
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    orders.forEach(order => {
+
+      const tr = document.createElement("tr");
+      tr.style.cssText = "border-bottom:1px solid #f1f5f9;";
+
+      SHEET_COLUMNS.forEach(col => {
+
+        const td = document.createElement("td");
+        td.style.cssText = `
+          padding:6px 10px;
+          border-right:1px solid #f1f5f9;
+          max-width:220px;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        `;
+
+        if (col.type === "link") {
+          td.innerHTML = order.map
+            ? `<a href="${order.map}" target="_blank" rel="noopener" style="color:#0ea5e9;">🗺 Open</a>`
+            : "-";
+
+        } else if (col.type === "image-link") {
+          td.innerHTML = order?.image?.url
+            ? `<a href="${order.image.url}" target="_blank" rel="noopener" style="color:#0ea5e9;">📷 ${order.image.uploadedAt || "Photo"}</a>`
+            : "-";
+
+        } else if (col.field === "orderNo") {
+          // identifier used for the update endpoint; not editable
+          td.textContent = order.orderNo ?? "";
+          td.style.fontWeight = "600";
+
+        } else {
+          td.contentEditable = "true";
+          td.textContent = order[col.field] ?? "";
+          td.style.cursor = "text";
+          td.style.outline = "none";
+
+          td.addEventListener("focus", () => {
+            td.style.background = "#eff6ff";
+          });
+
+          td.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              td.blur();
+            }
+          });
+
+          td.addEventListener("blur", () => {
+            td.style.background = "";
+
+            const newValue = td.textContent.trim();
+            if (newValue === (order[col.field] ?? "")) return;
+
+            order[col.field] = newValue;
+            Recaho.updateOrder(order.orderNo, order);
+          });
+        }
+
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    container.appendChild(wrap);
   }
 
   function makeDashboardDraggable(container, handle) {

@@ -36,6 +36,28 @@
     }
   }
 
+  async function updateOrder(orderNo, order) {
+    try {
+      const res = await fetch(
+        `https://recaho-helper-api.onrender.com/api/order/${encodeURIComponent(orderNo)}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(order)
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to update order");
+
+      return await res.json();
+    } catch (e) {
+      console.error("Order update failed:", e);
+      return null;
+    }
+  }
+
   function extractOrders() {
 
     const orders = [];
@@ -115,5 +137,6 @@
   Recaho.uploadOrders = uploadOrders;
   Recaho.getOrders = getOrders;
   Recaho.extractOrders = extractOrders;
+  Recaho.updateOrder = updateOrder;
 
 })(window.__recaho);
