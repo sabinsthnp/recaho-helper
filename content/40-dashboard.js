@@ -266,8 +266,8 @@ box-shadow: 2px 2px #8f8f8f;
     { field: "remarks", label: "Remarks" },
     { field: "captain", label: "Captain" },
     { field: "area", label: "Area" },
-    { field: "lat", label: "Lat" },
-    { field: "lng", label: "Lng" },
+    // { field: "lat", label: "Lat" },
+    // { field: "lng", label: "Lng" },
     { field: "map", label: "Map", type: "link" },
     { field: "image", label: "Image", type: "image-link" }
   ];
