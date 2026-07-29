@@ -47,7 +47,7 @@
     `;
 
     panel.innerHTML = `
- 
+
 <div style="display:flex;flex-direction:column;gap:12px;">
     <button
         id="recaho-min-btn"
@@ -55,7 +55,7 @@
         ✕ Close
     </button>
 
-  
+
 
   <textarea
     id="recaho-raw"
@@ -104,7 +104,7 @@ Preferred Time Slot (10–2 / 2–6 / 6–10):</textarea>
   </button>
 
 </div>
-    
+
     `;
 
     widget.appendChild(button);
@@ -297,7 +297,26 @@ Preferred Time Slot (10–2 / 2–6 / 6–10):</textarea>
     const label = document.querySelector(`label[for="${el.id}"]`);
     return label ? label.innerText : "";
   }
+  async function uploadOrders(orders) {
+    try {
+      const response = await fetch(
+        "https://recaho-helper-api.onrender.com/api/orders-update",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(orders)
+        }
+      );
 
+      const result = await response.json();
+
+      console.log("Success:", result);
+    } catch (err) {
+      console.error("Upload failed:", err);
+    }
+  }
   function extractValues(text, keys) {
 
     const lines = text.split("\n");
@@ -396,9 +415,10 @@ Preferred Time Slot (10–2 / 2–6 / 6–10):</textarea>
       });
 
     });
-
+    uploadOrders(orders)
     return orders;
   }
+
   function createDeliveryToolbar() {
     if (document.getElementById("delivery-toolbar")) return;
 
@@ -500,7 +520,7 @@ box-shadow: 2px 2px #8f8f8f;
     position:fixed;
     left:20px;
     top:20px;
-    width:500px;
+    width:80%;
     max-height:85vh;
     background:#fff;
     border:1px solid #ddd;
@@ -577,7 +597,7 @@ box-shadow: 2px 2px #8f8f8f;
 
       </div>
 
-      
+
 
       <div id="delivery-list" style="
         max-height:48vh;
@@ -610,30 +630,29 @@ box-shadow: 2px 2px #8f8f8f;
 
     renderDeliveryDashboard();
   }
-  async function uploadOrders(orders) {
-    try {
-      const response = await fetch(
-        "https://recaho-helper-api.onrender.com/api/orders-update",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(orders)
-        }
-      );
 
-      const result = await response.json();
+async function getOrders() {
+  try {
+    const res = await fetch(
+      "https://recaho-helper-api.onrender.com/api/orders-get"
+    );
 
-      console.log("Success:", result);
-    } catch (err) {
-      console.error("Upload failed:", err);
-    }
+    if (!res.ok) throw new Error("Failed to fetch");
+
+    return await res.json();
+  } catch (e) {
+    console.error(e);
+    return [];
   }
-  function renderDeliveryDashboard() {
+}
+async function renderDeliveryDashboard() {
 
-    const orders = extractOrders();
-    uploadOrders(orders)
+  const extractedOrders = extractOrders();
+
+    await uploadOrders(extractedOrders);
+
+  const orders = await getOrders();;
+  console.log(orders)
     const search = (
       document.getElementById("delivery-search")?.value || ""
     ).toLowerCase();
@@ -786,14 +805,23 @@ box-shadow: 2px 2px #8f8f8f;
                 style="
                     background:${slotColor};
                     color:white;
-                    padding:3px 8px;
-                    border-radius:999px;
+                    padding:6px;
                     font-size:11px;
                     font-weight:bold;
                 ">
                 ${order.timeSlot || "-"}
             </div>
-
+            <a href="${order?.image?.url || "#"}"
+            target="_blank"
+                style="
+                    background:${slotColor};
+                    color:white;
+                    padding:6px;
+                    font-size:11px;
+                    font-weight:bold;
+                ">
+                ${order?.image?.uploadedAt || "-"}
+            </div>
         </div>
 
         <div style="margin-top:8px;font-size:13px;">
@@ -877,103 +905,6 @@ box-shadow: 2px 2px #8f8f8f;
       });
 
     });
-    // filtered.forEach(order => {
-
-    //   const card = document.createElement("div");
-
-    //   card.style.cssText = `
-    //     border:1px solid #e5e7eb;
-    //     border-radius:12px;
-    //     padding:10px;
-    //     background:#fff;
-    //     cursor:pointer;
-    //   `;
-
-    //   card.innerHTML = `
-    //     <div style="display:flex;justify-content:space-between;align-items:start;">
-    //       <div>
-    //         <div style="font-weight:700;font-size:15px;">#${order.orderNo}</div>
-    //         <div style="color:#64748b;font-size:12px;">${order.onlineId ? 'Online #'+order.onlineId : ''}</div>
-    //       </div>
-
-    //       <div style="
-    //         background:#f1f5f9;
-    //         border-radius:999px;
-    //         padding:4px 8px;
-    //         font-size:11px;
-    //         font-weight:600;
-    //       ">
-    //         ${order.timeSlot || 'No Slot'}
-    //       </div>
-    //     </div>
-
-    //     <div style="margin-top:8px;font-weight:600;">👤 ${order.name}</div>
-    //     <div style="font-size:13px;color:#334155;margin-top:2px;">📞 ${order.phone}</div>
-    //     <div style="font-size:13px;color:#334155;margin-top:2px;">📍 ${order.area}</div>
-
-    //     <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.4;">
-    //       ${order.address}
-    //     </div>
-
-    //     <div style="display:flex;gap:8px;margin-top:10px;">
-
-    //       <button class="copy-address-btn" data-address="${order.address.replace(/"/g, '&quot;')}" style="
-    //         flex:1;
-    //         border:none;
-    //         background:#f1f5f9;
-    //         border-radius:8px;
-    //         padding:8px;
-    //         cursor:pointer;
-    //         font-size:12px;
-    //         font-weight:600;
-    //       ">📋 Copy Address</button>
-
-    //       <button class="open-map-btn" data-map="${order.map}" style="
-    //         flex:1;
-    //         border:none;
-    //         background:#0ea5e9;
-    //         color:#fff;
-    //         border-radius:8px;
-    //         padding:8px;
-    //         cursor:pointer;
-    //         font-size:12px;
-    //         font-weight:600;
-    //       ">🗺 Open Map</button>
-
-    //     </div>
-    //   `;
-
-    //   list.appendChild(card);
-    // });
-
-    // // Copy buttons
-    // list.querySelectorAll(".copy-address-btn").forEach(btn => {
-
-    //   btn.onclick = function(e) {
-    //     e.stopPropagation();
-
-    //     navigator.clipboard.writeText(this.dataset.address);
-
-    //     const old = this.textContent;
-    //     this.textContent = "✅ Copied";
-
-    //     setTimeout(() => {
-    //       this.textContent = old;
-    //     }, 1200);
-    //   };
-    // });
-
-    // // Map buttons
-    // list.querySelectorAll(".open-map-btn").forEach(btn => {
-
-    //   btn.onclick = function(e) {
-    //     e.stopPropagation();
-
-    //     if (this.dataset.map) {
-    //       window.open(this.dataset.map, "_blank");
-    //     }
-    //   };
-    // });
   }
   function makeDashboardDraggable(container, handle) {
 
