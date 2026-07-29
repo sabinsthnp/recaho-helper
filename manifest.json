@@ -17,7 +17,15 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": [
+        "content/00-namespace.js",
+        "content/10-form-filler.js",
+        "content/20-widget.js",
+        "content/30-orders-api.js",
+        "content/40-dashboard.js",
+        "content/50-shortcuts.js",
+        "content/90-init.js"
+      ],
       "all_frames": true
     }
   ]

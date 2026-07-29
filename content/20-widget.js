@@ -1,0 +1,193 @@
+(function(Recaho) {
+
+  function createWidget() {
+
+    const widget = document.createElement("div");
+    widget.id = "recaho-filler-widget";
+
+    widget.style.cssText = `
+      position: fixed;
+      right: 18px;
+      top: 18px;
+      z-index: 999999;
+      font-family: sans-serif;
+    `;
+
+    const button = document.createElement("div");
+    button.textContent = "Fill";
+    button.style.cssText = `
+      width: 48px;
+      height: 48px;
+      background: #32B4F1;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      user-select: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    `;
+
+    const panel = document.createElement("div");
+    panel.style.cssText = `
+      display: none;
+      width: 280px;
+      height: auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.25);
+      padding: 10px;
+      box-sizing: border-box;
+    text-align: -webkit-right;
+    `;
+
+    panel.innerHTML = `
+
+<div style="display:flex;flex-direction:column;gap:12px;">
+    <button
+        id="recaho-min-btn"
+        style="flex:1;padding:8px;border:none;background:#f3f4f6;border-radius:8px;cursor:pointer;font-weight:600;">
+        ✕ Close
+    </button>
+
+
+
+  <textarea
+    id="recaho-raw"
+    placeholder="Paste order text here..."
+    style="
+      width:100%;
+      height:170px;
+      padding:12px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      font-size:14px;
+      font-family:inherit;
+      resize:vertical;
+      outline:none;
+      box-sizing:border-box;
+    ">Name:
+Phone Number:
+Email:
+
+Cake Flavour:
+Cake Size (in kg):
+
+Message on Cake:
+Message or Gift Note (if any):
+
+Pickup or Delivery:
+Delivery Address & Google Pin:
+Pickup / Delivery Date:
+Preferred Time Slot (10–2 / 2–6 / 6–10):</textarea>
+
+  <button
+    id="recaho-fill-btn"
+    style="
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      background:#32B4F1;
+      color:white;
+      font-size:15px;
+      font-weight:600;
+      cursor:pointer;
+      transition:.2s;
+    ">
+    ⚡ Fill Booking Form
+  </button>
+
+</div>
+
+    `;
+
+    widget.appendChild(button);
+    widget.appendChild(panel);
+    document.body.appendChild(widget);
+
+    let opened = false;
+
+    button.onclick = () => {
+      opened = true;
+      button.style.display = "none";
+      panel.style.display = "block";
+    };
+
+    panel.querySelector("#recaho-min-btn").onclick = () => {
+      opened = false;
+      panel.style.display = "none";
+      button.style.display = "flex";
+    };
+
+    panel.querySelector("#recaho-fill-btn").onclick = () => {
+      const raw = panel.querySelector("#recaho-raw").value;
+      Recaho.fillFormOnPage(raw);
+    };
+
+    makeDraggable(widget, button);
+
+  }
+
+  function makeDraggable(container, handle) {
+
+    let startX, startY, startLeft, startTop, dragging = false;
+
+    handle.addEventListener("mousedown", start);
+    handle.addEventListener("touchstart", start, { passive: false });
+
+    function start(e) {
+      dragging = true;
+
+      const p = getPoint(e);
+
+      startX = p.x;
+      startY = p.y;
+
+      const rect = container.getBoundingClientRect();
+      startLeft = rect.left;
+      startTop = rect.top;
+
+      document.addEventListener("mousemove", move);
+      document.addEventListener("touchmove", move, { passive: false });
+      document.addEventListener("mouseup", end);
+      document.addEventListener("touchend", end);
+    }
+
+    function move(e) {
+      if (!dragging) return;
+
+      const p = getPoint(e);
+
+      const dx = p.x - startX;
+      const dy = p.y - startY;
+
+      container.style.left = startLeft + dx + "px";
+      container.style.top = startTop + dy + "px";
+      container.style.right = "auto";
+      container.style.bottom = "auto";
+
+      e.preventDefault();
+    }
+
+    function end() {
+      dragging = false;
+      document.removeEventListener("mousemove", move);
+      document.removeEventListener("touchmove", move);
+      document.removeEventListener("mouseup", end);
+      document.removeEventListener("touchend", end);
+    }
+
+    function getPoint(e) {
+      if (e.touches && e.touches.length) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      return { x: e.clientX, y: e.clientY };
+    }
+  }
+
+  Recaho.createWidget = createWidget;
+
+})(window.__recaho);
