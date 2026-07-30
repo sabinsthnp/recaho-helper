@@ -88,7 +88,7 @@ box-shadow: 2px 2px #8f8f8f;
 `; toolbar.addEventListener('click', () => {
       createDeliveryDashboard();
     })
-    document.getElementById("NewOrderButton").closest("div").parentElement.prepend(toolbar);
+    document.getElementById("NewOrderButton")?.closest("div").parentElement.prepend(toolbar);
   }
 
   function createDeliveryDashboard() {
@@ -259,12 +259,12 @@ box-shadow: 2px 2px #8f8f8f;
     { field: "onlineId", label: "Online ID" },
     { field: "name", label: "Name" },
     { field: "phone", label: "Phone" },
-    { field: "date", label: "Date" },
-    { field: "createdTime", label: "Created" },
+    // { field: "date", label: "Date" },
+    // { field: "createdTime", label: "Created" },
     { field: "timeSlot", label: "Time Slot" },
     { field: "address", label: "Address" },
     { field: "remarks", label: "Remarks" },
-    { field: "captain", label: "Captain" },
+    { field: "captains", label: "Captain" },
     { field: "area", label: "Area" },
     // { field: "lat", label: "Lat" },
     // { field: "lng", label: "Lng" },
@@ -325,6 +325,7 @@ box-shadow: 2px 2px #8f8f8f;
         const td = document.createElement("td");
         td.style.cssText = `
           padding:6px 10px;
+background:${order.completed ? "#3cad638c !important" : "#fff"};
           border-right:1px solid #f1f5f9;
           max-width:220px;
           overflow:hidden;

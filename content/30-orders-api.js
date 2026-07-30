@@ -57,7 +57,18 @@
       return null;
     }
   }
-
+  function getPhone(card) {
+    // Find the copy icon
+    const copyIcon = card.querySelector(".anticon-copy");
+    if (!copyIcon) return "";
+    // Parent contains: 0527129545 + copy icon
+    const phoneContainer = copyIcon.parentElement;
+    if (!phoneContainer) return "";
+    // Clone so we can remove the icon
+    const clone = phoneContainer.cloneNode(true);
+    clone.querySelector(".anticon-copy")?.remove();
+    return clone.textContent.trim();
+  }
   function extractOrders() {
 
     const orders = [];
@@ -72,8 +83,8 @@
       const name =
         customer.querySelector("span")?.innerText.trim() || "";
 
-      const phone =
-        text.match(/\b05\d{8}\b/)?.[0] || "";
+      const phone = getPhone(card);
+      // text.match(/\b05\d{8}\b/)?.[0] || "";
 
       const orderNo =
         text.match(/Order No:\s*(\d+)/)?.[1] || "";
