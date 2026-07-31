@@ -101,8 +101,9 @@ box-shadow: 2px 2px #8f8f8f;
     dashboard.style.cssText = `
     position:fixed;
     left:20px;
-    top:20px;
-    width:80%;
+    top:200px;
+    width:calc(100vw - 40px);
+    max-width:100vw;
     max-height:85vh;
     background:#fff;
     border:1px solid #ddd;
@@ -125,7 +126,7 @@ box-shadow: 2px 2px #8f8f8f;
     ">
       <div>
         <div style="font-size:18px;font-weight:700;">🚚 Delivery Dashboard</div>
-        <div style="font-size:12px;opacity:.9;">Live order view</div>
+        <div style="font-size:12px;opacity:.9;">Live orders view</div>
       </div>
 
       <div style="display:flex;gap:8px;">
@@ -187,6 +188,7 @@ box-shadow: 2px 2px #8f8f8f;
   `;
 
     document.body.appendChild(dashboard);
+
 
     makeDashboardDraggable(
       dashboard,
@@ -260,7 +262,6 @@ box-shadow: 2px 2px #8f8f8f;
     // { field: "date", label: "Date" },
     // { field: "createdTime", label: "Created" },
     { field: "timeSlot", label: "Time Slot" },
-    { field: "deliveryDate", label: "Delivery Date" },
     { field: "address", label: "Address" },
     { field: "remarks", label: "Remarks" },
     { field: "captains", label: "Captain" },
@@ -268,7 +269,8 @@ box-shadow: 2px 2px #8f8f8f;
     // { field: "lat", label: "Lat" },
     // { field: "lng", label: "Lng" },
     { field: "map", label: "Map", type: "link" },
-    { field: "image", label: "Image", type: "image-link" }
+    { field: "image", label: "Image", type: "image-link" },
+    { field: "deliveryDate", label: "Delivery Date" }
   ];
 
   function renderOrdersSheet(container, orders) {
