@@ -209,9 +209,7 @@ box-shadow: 2px 2px #8f8f8f;
 
   async function renderDeliveryDashboard() {
 
-    const extractedOrders = Recaho.extractOrders();
-
-    await Recaho.uploadOrders(extractedOrders);
+    await Recaho.extractOrders();
 
     const orders = await Recaho.getOrders();
     console.log(orders)
@@ -262,6 +260,7 @@ box-shadow: 2px 2px #8f8f8f;
     // { field: "date", label: "Date" },
     // { field: "createdTime", label: "Created" },
     { field: "timeSlot", label: "Time Slot" },
+    { field: "deliveryDate", label: "Delivery Date" },
     { field: "address", label: "Address" },
     { field: "remarks", label: "Remarks" },
     { field: "captains", label: "Captain" },

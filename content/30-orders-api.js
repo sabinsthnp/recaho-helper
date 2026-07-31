@@ -57,6 +57,22 @@
       return null;
     }
   }
+  function getSelectedDeliveryDate() {
+    const input = document.querySelector(".dashboardCalender input");
+    return input?.value?.trim() || "";
+  }
+
+  function isDateToday(dateStr) {
+    if (!dateStr) return true;
+
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, "0");
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const yyyy = today.getFullYear();
+
+    return dateStr === `${dd}-${mm}-${yyyy}`;
+  }
+
   function getPhone(card) {
     // Find the copy icon
     const copyIcon = card.querySelector(".anticon-copy");
@@ -69,9 +85,10 @@
     clone.querySelector(".anticon-copy")?.remove();
     return clone.textContent.trim();
   }
-  function extractOrders() {
+  async function extractOrders() {
 
     const orders = [];
+    const deliveryDate = getSelectedDeliveryDate();
 
     document.querySelectorAll(".customer-basic-details").forEach(customer => {
 
@@ -133,6 +150,7 @@
         date,
         createdTime,
         timeSlot,
+        deliveryDate,
         address,
         area,
         lat,
@@ -141,7 +159,13 @@
       });
 
     });
-    uploadOrders(orders)
+
+    if (isDateToday(deliveryDate)) {
+      await uploadOrders(orders);
+    } else {
+      console.log("Selected date is not today, skipping upload:", deliveryDate);
+    }
+
     return orders;
   }
 
@@ -149,5 +173,6 @@
   Recaho.getOrders = getOrders;
   Recaho.extractOrders = extractOrders;
   Recaho.updateOrder = updateOrder;
+  Recaho.getSelectedDeliveryDate = getSelectedDeliveryDate;
 
 })(window.__recaho);
