@@ -130,6 +130,15 @@ box-shadow: 2px 2px #8f8f8f;
       </div>
 
       <div style="display:flex;gap:8px;">
+        <button id="delivery-add" title="Add order" style="
+          border:none;
+          background:rgba(255,255,255,.2);
+          color:#fff;
+          border-radius:8px;
+          padding:6px 10px;
+          cursor:pointer;
+        ">+</button>
+
         <button id="delivery-refresh" style="
           border:none;
           background:rgba(255,255,255,.2);
@@ -201,6 +210,30 @@ box-shadow: 2px 2px #8f8f8f;
 
     dashboard.querySelector("#delivery-refresh").onclick = renderDeliveryDashboard;
 
+    dashboard.querySelector("#delivery-add").onclick = async () => {
+      const orderNo = prompt("Order ID:")?.trim();
+      if (!orderNo) return;
+
+      const newOrder = {
+        orderNo,
+        onlineId: "",
+        name: "",
+        phone: "",
+        date: "",
+        createdTime: "",
+        timeSlot: "",
+        deliveryDate: Recaho.getSelectedDeliveryDate(),
+        address: "",
+        area: "",
+        lat: "",
+        lng: "",
+        map: ""
+      };
+
+      await Recaho.uploadOrders([newOrder]);
+      renderDeliveryDashboard();
+    };
+
     dashboard.querySelector("#delivery-search").addEventListener(
       "input",
       renderDeliveryDashboard
@@ -270,7 +303,8 @@ box-shadow: 2px 2px #8f8f8f;
     // { field: "lng", label: "Lng" },
     { field: "map", label: "Map", type: "link" },
     { field: "image", label: "Image", type: "image-link" },
-    { field: "deliveryDate", label: "Delivery Date" }
+    { field: "deliveryDate", label: "Delivery Date" },
+    { field: "delete", label: "", type: "delete" }
   ];
 
   function renderOrdersSheet(container, orders) {
@@ -347,6 +381,29 @@ background:${order.completed ? "#3cad638c !important" : "#fff"};
           // identifier used for the update endpoint; not editable
           td.textContent = order.orderNo ?? "";
           td.style.fontWeight = "600";
+
+        } else if (col.type === "delete") {
+
+          const btn = document.createElement("button");
+          btn.textContent = "🗑";
+          btn.title = "Delete order";
+          btn.style.cssText = `
+            border:none;
+            background:#fee2e2;
+            color:#b91c1c;
+            border-radius:6px;
+            padding:4px 8px;
+            cursor:pointer;
+          `;
+
+          btn.onclick = async () => {
+            if (!confirm(`Delete order #${order.orderNo}?`)) return;
+
+            const ok = await Recaho.deleteOrder(order.orderNo);
+            if (ok) tr.remove();
+          };
+
+          td.appendChild(btn);
 
         } else {
           td.contentEditable = "true";

@@ -57,6 +57,22 @@
       return null;
     }
   }
+  async function deleteOrder(orderNo) {
+    try {
+      const res = await fetch(
+        `https://recaho-helper-api.onrender.com/api/order/${encodeURIComponent(orderNo)}`,
+        { method: "DELETE" }
+      );
+
+      if (!res.ok) throw new Error("Failed to delete order");
+
+      return true;
+    } catch (e) {
+      console.error("Order delete failed:", e);
+      return false;
+    }
+  }
+
   function getSelectedDeliveryDate() {
     const input = document.querySelector(".dashboardCalender input");
     return input?.value?.trim() || "";
@@ -173,6 +189,7 @@
   Recaho.getOrders = getOrders;
   Recaho.extractOrders = extractOrders;
   Recaho.updateOrder = updateOrder;
+  Recaho.deleteOrder = deleteOrder;
   Recaho.getSelectedDeliveryDate = getSelectedDeliveryDate;
 
 })(window.__recaho);
