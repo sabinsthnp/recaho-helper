@@ -23,9 +23,12 @@
 
   async function getOrders() {
     try {
-      const res = await fetch(
-        "https://recaho-helper-api.onrender.com/api/orders-get"
-      );
+      const url = new URL("https://recaho-helper-api.onrender.com/api/orders-get");
+
+      const deliveryDate = getSelectedDeliveryDate();
+      if (deliveryDate) url.searchParams.set("deliveryDate", deliveryDate);
+
+      const res = await fetch(url);
 
       if (!res.ok) throw new Error("Failed to fetch");
 
@@ -176,11 +179,11 @@
 
     });
 
-    if (isDateToday(deliveryDate)) {
-      await uploadOrders(orders);
-    } else {
-      console.log("Selected date is not today, skipping upload:", deliveryDate);
-    }
+    // if (isDateToday(deliveryDate)) {
+    await uploadOrders(orders);
+    // } else {
+    // console.log("Selected date is not today, skipping upload:", deliveryDate);
+    // }
 
     return orders;
   }

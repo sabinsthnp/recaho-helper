@@ -100,9 +100,9 @@ box-shadow: 2px 2px #8f8f8f;
 
     dashboard.style.cssText = `
     position:fixed;
-    left:20px;
+    right:20px;
     top:200px;
-    width:calc(100vw - 40px);
+    width:calc(70vw - 40px);
     max-width:100vw;
     max-height:85vh;
     background:#fff;
@@ -170,26 +170,19 @@ box-shadow: 2px 2px #8f8f8f;
         margin-bottom:12px;
       ">
 
-      <div style="
-        display:grid;
-        grid-template-columns:repeat(2,1fr);
-        gap:8px;
-        margin-bottom:12px;
-      ">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
 
-        <div style="background:#f8fafc;padding:10px;border-radius:12px;border:1px solid #e2e8f0;">
-          <div style="font-size:12px;color:#64748b;">Total Orders</div>
-          <div id="stat-total" style="font-size:24px;font-weight:700;">0</div>
+        <div style="display:flex;align-items:center;gap:5px;padding:4px 9px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;font-size:11px;font-weight:600;color:#64748b;">
+          Total Orders <span id="stat-total" style="font-size:13px;color:#334155;">0</span>
         </div>
 
-        <div style="background:#f8fafc;padding:10px;border-radius:12px;border:1px solid #e2e8f0;">
-          <div style="font-size:12px;color:#64748b;">Areas</div>
-          <div id="stat-areas" style="font-size:24px;font-weight:700;">0</div>
+        <div style="display:flex;align-items:center;gap:5px;padding:4px 9px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;font-size:11px;font-weight:600;color:#64748b;">
+          Areas <span id="stat-areas" style="font-size:13px;color:#334155;">0</span>
         </div>
 
       </div>
 
-
+      <div id="captain-stats" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
 
       <div id="delivery-list"></div>
 
@@ -271,20 +264,75 @@ box-shadow: 2px 2px #8f8f8f;
     const areas = new Set(filtered.map(o => o.area).filter(Boolean));
     document.getElementById("stat-areas").textContent = areas.size;
 
+    const pending = filtered.filter(o => !o.completed);
+
     document.getElementById("slot-10-2").textContent =
-      filtered.filter(o => /10.*2/i.test(o.timeSlot)).length;
+      pending.filter(o => /10.*2/i.test(o.timeSlot)).length;
 
     document.getElementById("slot-2-6").textContent =
-      filtered.filter(o => /2.*6/i.test(o.timeSlot)).length;
+      pending.filter(o => /2.*6/i.test(o.timeSlot)).length;
 
     document.getElementById("slot-6-10").textContent =
-      filtered.filter(o => /6.*10/i.test(o.timeSlot)).length;
+      pending.filter(o => /6.*10/i.test(o.timeSlot)).length;
+
+    renderCaptainStats(document.getElementById("captain-stats"), filtered);
 
     // Render sheet
     const list = document.getElementById("delivery-list");
     list.innerHTML = "";
 
     renderOrdersSheet(list, filtered);
+  }
+
+  function renderCaptainStats(container, orders) {
+
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const groups = {};
+
+    orders.forEach(order => {
+      const captain = (order.captains || "").trim() || "Unassigned";
+
+      if (!groups[captain]) {
+        groups[captain] = { pending: 0, completed: 0 };
+      }
+
+      if (order.completed) {
+        groups[captain].completed++;
+      } else {
+        groups[captain].pending++;
+      }
+    });
+
+    Object.keys(groups).sort().forEach(captain => {
+
+      const { pending, completed } = groups[captain];
+
+      const chip = document.createElement("div");
+      chip.style.cssText = `
+        display:flex;
+        align-items:center;
+        gap:6px;
+        padding:4px 9px;
+        background:#f8fafc;
+        border:1px solid #e2e8f0;
+        border-radius:7px;
+        font-size:11px;
+        font-weight:600;
+        color:#334155;
+        white-space:nowrap;
+      `;
+
+      chip.innerHTML = `
+        <span> ${captain}</span>
+        <span style="color:#9a3412;">⏳ ${pending}</span>
+        <span style="color:#166534;">✅ ${completed}</span>
+      `;
+
+      container.appendChild(chip);
+    });
   }
 
   const SHEET_COLUMNS = [
@@ -373,9 +421,25 @@ background:${order.completed ? "#3cad638c !important" : "#fff"};
             : "-";
 
         } else if (col.type === "image-link") {
+          const uploadedAt = order?.image?.uploadedAt
+            ? new Date(order.image.uploadedAt).toLocaleString(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })
+            : "Photo";
           td.innerHTML = order?.image?.url
-            ? `<a href="${order.image.url}" target="_blank" rel="noopener" style="color:#0ea5e9;">📷 ${order.image.uploadedAt || "Photo"}</a>`
+
+            ? `<a href="${order.image.url}" target="_blank" rel="noopener" style="color:#0ea5e9;">
+      📷 ${uploadedAt}
+    </a>`
+
             : "-";
+          // td.innerHTML = order?.image?.url
+          //   ? `<a href="${order.image.url}" target="_blank" rel="noopener" style="color:#0ea5e9;">📷 ${order.image.uploadedAt || "Photo"}</a>`
+          //   : "-";
 
         } else if (col.field === "orderNo") {
           // identifier used for the update endpoint; not editable
