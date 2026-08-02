@@ -1,7 +1,28 @@
 (function(Recaho) {
 
-  async function uploadOrders(orders) {
+  const STORE_KEY = "recahoStore";
+
+  async function getStoreName() {
     try {
+      const { [STORE_KEY]: storeName } = await chrome.storage.sync.get(STORE_KEY);
+      return (storeName || "").trim();
+    } catch (e) {
+      console.error("Failed to read store name:", e);
+      return "";
+    }
+  }
+
+  async function uploadOrders(orders) {
+    const store = await getStoreName();
+
+    if (!store) {
+      console.warn("Recaho: store name not set, skipping upload");
+      return;
+    }
+
+    try {
+      const payload = orders.map(o => ({ ...o, store }));
+
       const response = await fetch(
         "https://recaho-helper-api.onrender.com/api/orders-update",
         {
@@ -9,7 +30,7 @@
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify(orders)
+          body: JSON.stringify(payload)
         }
       );
 
@@ -22,11 +43,20 @@
   }
 
   async function getOrders() {
+    const store = await getStoreName();
+
+    if (!store) {
+      console.warn("Recaho: store name not set, skipping fetch");
+      return [];
+    }
+
     try {
       const url = new URL("https://recaho-helper-api.onrender.com/api/orders-get");
 
       const deliveryDate = getSelectedDeliveryDate();
       if (deliveryDate) url.searchParams.set("deliveryDate", deliveryDate);
+
+      url.searchParams.set("store", store);
 
       const res = await fetch(url);
 
@@ -40,7 +70,16 @@
   }
 
   async function updateOrder(orderNo, order) {
+    const store = await getStoreName();
+
+    if (!store) {
+      console.warn("Recaho: store name not set, skipping update");
+      return null;
+    }
+
     try {
+      const payload = { ...order, store };
+
       const res = await fetch(
         `https://recaho-helper-api.onrender.com/api/order/${encodeURIComponent(orderNo)}`,
         {
@@ -48,7 +87,7 @@
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify(order)
+          body: JSON.stringify(payload)
         }
       );
 
@@ -61,6 +100,13 @@
     }
   }
   async function deleteOrder(orderNo) {
+    const store = await getStoreName();
+
+    if (!store) {
+      console.warn("Recaho: store name not set, skipping delete");
+      return false;
+    }
+
     try {
       const res = await fetch(
         `https://recaho-helper-api.onrender.com/api/order/${encodeURIComponent(orderNo)}`,
@@ -194,5 +240,6 @@
   Recaho.updateOrder = updateOrder;
   Recaho.deleteOrder = deleteOrder;
   Recaho.getSelectedDeliveryDate = getSelectedDeliveryDate;
+  Recaho.getStoreName = getStoreName;
 
 })(window.__recaho);

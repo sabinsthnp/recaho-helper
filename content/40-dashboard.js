@@ -102,7 +102,7 @@ box-shadow: 2px 2px #8f8f8f;
     position:fixed;
     right:20px;
     top:200px;
-    width:calc(70vw - 40px);
+    width:calc(100vw - 40px);
     max-width:100vw;
     max-height:85vh;
     background:#fff;
