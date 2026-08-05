@@ -8,7 +8,7 @@
     widget.style.cssText = `
       position: fixed;
       right: 18px;
-      top: 18px;
+      bottom: 18px;
       z-index: 999999;
       font-family: sans-serif;
     `;

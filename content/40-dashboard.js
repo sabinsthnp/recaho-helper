@@ -101,7 +101,7 @@ box-shadow: 2px 2px #8f8f8f;
     dashboard.style.cssText = `
     position:fixed;
     right:20px;
-    top:200px;
+    top:20px;
     width:calc(100vw - 40px);
     max-width:100vw;
     max-height:85vh;
@@ -130,6 +130,15 @@ box-shadow: 2px 2px #8f8f8f;
       </div>
 
       <div style="display:flex;gap:8px;">
+        <button id="delivery-upload" title="Upload orders from page" style="
+          border:none;
+          background:rgba(255,255,255,.2);
+          color:#fff;
+          border-radius:8px;
+          padding:6px 10px;
+          cursor:pointer;
+        ">Upload</button>
+
         <button id="delivery-add" title="Add order" style="
           border:none;
           background:rgba(255,255,255,.2);
@@ -203,6 +212,11 @@ box-shadow: 2px 2px #8f8f8f;
 
     dashboard.querySelector("#delivery-refresh").onclick = renderDeliveryDashboard;
 
+    dashboard.querySelector("#delivery-upload").onclick = async () => {
+      await Recaho.extractOrders();
+      renderDeliveryDashboard();
+    };
+
     dashboard.querySelector("#delivery-add").onclick = async () => {
       const orderNo = prompt("Order ID:")?.trim();
       if (!orderNo) return;
@@ -236,8 +250,6 @@ box-shadow: 2px 2px #8f8f8f;
   }
 
   async function renderDeliveryDashboard() {
-
-    await Recaho.extractOrders();
 
     const orders = await Recaho.getOrders();
     console.log(orders)
@@ -319,7 +331,7 @@ box-shadow: 2px 2px #8f8f8f;
         background:#f8fafc;
         border:1px solid #e2e8f0;
         border-radius:7px;
-        font-size:11px;
+        font-size:16px;
         font-weight:600;
         color:#334155;
         white-space:nowrap;
