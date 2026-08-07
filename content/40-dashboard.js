@@ -1,5 +1,7 @@
 (function(Recaho) {
 
+  let activeCaptainFilter = null;
+
   function createDeliveryToolbar() {
     if (document.getElementById("delivery-toolbar")) return;
 
@@ -100,11 +102,11 @@ box-shadow: 2px 2px #8f8f8f;
 
     dashboard.style.cssText = `
     position:fixed;
-    right:20px;
+    right:70px;
     top:20px;
-    width:calc(100vw - 40px);
+    width:calc(100vw - 140px);
     max-width:100vw;
-    max-height:85vh;
+    max-height:95vh;
     background:#fff;
     border:1px solid #ddd;
     border-radius:16px;
@@ -130,6 +132,13 @@ box-shadow: 2px 2px #8f8f8f;
       </div>
 
       <div style="display:flex;gap:8px;">
+      <input id="delivery-search" placeholder="Search..." style="
+        width:100%;
+        padding:8px;
+        border:1px solid #ddd;
+        border-radius:10px;
+        box-sizing:border-box;
+      ">
         <button id="delivery-upload" title="Upload orders from page" style="
           border:none;
           background:rgba(255,255,255,.2);
@@ -168,32 +177,43 @@ box-shadow: 2px 2px #8f8f8f;
       </div>
     </div>
 
-    <div style="padding:14px;">
+    <div style="padding:14px 14px 0 14px;">
+      <div style="display:flex;gap:12px; justify-content:space-between;">
+<div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
 
-      <input id="delivery-search" placeholder="Search order, name, phone, area..." style="
-        width:100%;
-        padding:10px;
-        border:1px solid #ddd;
-        border-radius:10px;
-        box-sizing:border-box;
-        margin-bottom:12px;
-      ">
+        <div style="display:flex;align-items:center;gap:5px;padding:4px 9px;background:#ecfdf5;border:1px solid #bbf7d0;border-radius:7px;font-size:11px;font-weight:600;color:#166534;">
+          🟢 10-2 <span id="dash-slot-10-2" style="font-size:13px;">0</span>
+        </div>
 
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:5px;padding:4px 9px;background:#fff7ed;border:1px solid #fed7aa;border-radius:7px;font-size:11px;font-weight:600;color:#9a3412;">
+          🟠 2-6 <span id="dash-slot-2-6" style="font-size:13px;">0</span>
+        </div>
 
-        <div style="display:flex;align-items:center;gap:5px;padding:4px 9px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;font-size:11px;font-weight:600;color:#64748b;">
+        <div style="display:flex;align-items:center;gap:5px;padding:4px 9px;background:#fef2f2;border:1px solid #fecaca;border-radius:7px;font-size:11px;font-weight:600;color:#991b1b;">
+          🔴 6-10 <span id="dash-slot-6-10" style="font-size:13px;">0</span>
+        </div>
+
+
+      <div id="captain-stats" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+
+</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+     <div style="display:flex;align-items:center;gap:5px;padding:4px 9px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;font-size:11px;font-weight:600;color:#64748b;">
           Total Orders <span id="stat-total" style="font-size:13px;color:#334155;">0</span>
         </div>
 
         <div style="display:flex;align-items:center;gap:5px;padding:4px 9px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;font-size:11px;font-weight:600;color:#64748b;">
           Areas <span id="stat-areas" style="font-size:13px;color:#334155;">0</span>
         </div>
-
+          </div>
       </div>
+</div>
 
-      <div id="captain-stats" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
 
-      <div id="delivery-list"></div>
+
+      <div id="delivery-list" style="padding:12px;"></div>
 
     </div>
   `;
@@ -270,27 +290,36 @@ box-shadow: 2px 2px #8f8f8f;
       return haystack.includes(search);
     });
 
-    // Stats
-    document.getElementById("stat-total").textContent = filtered.length;
-
-    const areas = new Set(filtered.map(o => o.area).filter(Boolean));
-    document.getElementById("stat-areas").textContent = areas.size;
-
-    const pending = filtered.filter(o => !o.completed);
-
-    document.getElementById("slot-10-2").textContent =
-      pending.filter(o => /10.*2/i.test(o.timeSlot)).length;
-
-    document.getElementById("slot-2-6").textContent =
-      pending.filter(o => /2.*6/i.test(o.timeSlot)).length;
-
-    document.getElementById("slot-6-10").textContent =
-      pending.filter(o => /6.*10/i.test(o.timeSlot)).length;
-
+    // Captain chips always reflect every captain, regardless of the active filter,
+    // so you can click to switch captains or click again to clear it.
     renderCaptainStats(document.getElementById("captain-stats"), filtered);
 
+    const captainFiltered = activeCaptainFilter
+      ? filtered.filter(o => ((o.captains || "").trim() || "Unassigned") === activeCaptainFilter)
+      : filtered;
+
+    // Stats
+    document.getElementById("stat-total").textContent = captainFiltered.length;
+
+    const areas = new Set(captainFiltered.map(o => o.area).filter(Boolean));
+    document.getElementById("stat-areas").textContent = areas.size;
+
+    const pending = captainFiltered.filter(o => !o.completed);
+
+    const count102 = pending.filter(o => /10.*2/i.test(o.timeSlot)).length;
+    const count26 = pending.filter(o => /2.*6/i.test(o.timeSlot)).length;
+    const count610 = pending.filter(o => /6.*10/i.test(o.timeSlot)).length;
+
+    document.getElementById("slot-10-2").textContent = count102;
+    document.getElementById("slot-2-6").textContent = count26;
+    document.getElementById("slot-6-10").textContent = count610;
+
+    document.getElementById("dash-slot-10-2").textContent = count102;
+    document.getElementById("dash-slot-2-6").textContent = count26;
+    document.getElementById("dash-slot-6-10").textContent = count610;
+
     // Render sheet, sorted chronologically by time slot
-    const sorted = [...filtered].sort(
+    const sorted = [...captainFiltered].sort(
       (a, b) => timeSlotRank(a.timeSlot) - timeSlotRank(b.timeSlot)
     );
 
@@ -335,6 +364,7 @@ box-shadow: 2px 2px #8f8f8f;
     Object.keys(groups).sort().forEach(captain => {
 
       const { pending, completed } = groups[captain];
+      const active = captain === activeCaptainFilter;
 
       const chip = document.createElement("div");
       chip.style.cssText = `
@@ -342,20 +372,27 @@ box-shadow: 2px 2px #8f8f8f;
         align-items:center;
         gap:6px;
         padding:4px 9px;
-        background:#f8fafc;
-        border:1px solid #e2e8f0;
+        background:${active ? "#dbeafe" : "#f8fafc"};
+        border:1px solid ${active ? "#60a5fa" : "#e2e8f0"};
         border-radius:7px;
         font-size:16px;
         font-weight:600;
         color:#334155;
         white-space:nowrap;
+        cursor:pointer;
       `;
+      chip.title = active ? "Click to clear filter" : `Click to show only ${captain}`;
 
       chip.innerHTML = `
+        <span style="color:#9a3412;"> ${pending}</span>
         <span> ${captain}</span>
-        <span style="color:#9a3412;">⏳ ${pending}</span>
-        <span style="color:#166534;">✅ ${completed}</span>
+        <span style="color:#166534;"> ${completed}</span>
       `;
+
+      chip.onclick = () => {
+        activeCaptainFilter = active ? null : captain;
+        renderDeliveryDashboard();
+      };
 
       container.appendChild(chip);
     });
@@ -387,7 +424,7 @@ box-shadow: 2px 2px #8f8f8f;
     const wrap = document.createElement("div");
     wrap.style.cssText = `
       overflow:auto;
-      max-height:48vh;
+      max-height:90vh;
       border:1px solid #e2e8f0;
       border-radius:10px;
     `;
@@ -479,10 +516,35 @@ box-shadow: 2px 2px #8f8f8f;
 
         } else if (col.type === "delete") {
 
-          const btn = document.createElement("button");
-          btn.textContent = "🗑";
-          btn.title = "Delete order";
-          btn.style.cssText = `
+          const moveBtn = document.createElement("button");
+          moveBtn.textContent = "🏬";
+          moveBtn.title = order.store ? `Store: ${order.store} (click to change)` : "Set store for this order";
+          moveBtn.style.cssText = `
+            border:none;
+            background:#e0f2fe;
+            color:#0369a1;
+            border-radius:6px;
+            padding:4px 8px;
+            cursor:pointer;
+            margin-right:4px;
+          `;
+
+          moveBtn.onclick = async () => {
+            const newStore = prompt("Store name for this order:", order.store || "")?.trim();
+            if (!newStore) return;
+
+            order.store = newStore;
+            const result = await Recaho.updateOrder(order.orderNo, order);
+
+            if (result) {
+              moveBtn.title = `Store: ${newStore} (click to change)`;
+            }
+          };
+
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "🗑";
+          delBtn.title = "Delete order";
+          delBtn.style.cssText = `
             border:none;
             background:#fee2e2;
             color:#b91c1c;
@@ -491,14 +553,15 @@ box-shadow: 2px 2px #8f8f8f;
             cursor:pointer;
           `;
 
-          btn.onclick = async () => {
+          delBtn.onclick = async () => {
             if (!confirm(`Delete order #${order.orderNo}?`)) return;
 
             const ok = await Recaho.deleteOrder(order.orderNo);
             if (ok) tr.remove();
           };
 
-          td.appendChild(btn);
+          td.appendChild(moveBtn);
+          td.appendChild(delBtn);
 
         } else {
           td.contentEditable = "true";

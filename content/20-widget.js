@@ -381,7 +381,6 @@ Preferred Time Slot (10–2 / 2–6 / 6–10):</textarea>
     };
 
     sidebar.querySelector("#recaho-open-dashboard").onclick = () => {
-      sidebar.style.display = "none";
       hideDetailPanels();
       button.style.display = "flex";
       Recaho.createDeliveryDashboard();

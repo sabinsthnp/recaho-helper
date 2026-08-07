@@ -78,7 +78,9 @@
     }
 
     try {
-      const payload = { ...order, store };
+      // Preserve an explicit per-order store override instead of always
+      // stamping the extension's globally configured store.
+      const payload = { ...order, store: order.store || store };
 
       const res = await fetch(
         `https://recaho-helper-api.onrender.com/api/order/${encodeURIComponent(orderNo)}`,
@@ -168,9 +170,10 @@
       const phone = getPhone(card);
       // text.match(/\b05\d{8}\b/)?.[0] || "";
 
-      const suborderBtn = card.querySelector("#suborderBtn span");
-      console.log('🚀 🐞 ~ file: 30-orders-api.js:171 ~ anonymous ~ suborderBtn:', suborderBtn);
-      const deliveryType = suborderBtn?.innerText.trim() || "";
+      const orderContainer = customer.closest(".singleOrderdiv") || card;
+      console.log('🚀 🐞 ~ file: 30-orders-api.js:171 ~ anonymous ~ orderContainer:', orderContainer);
+      const deliveryType = orderContainer.querySelector("#suborderBtn span")?.innerText.trim() || "";
+      console.log('🚀 🐞 ~ file: 30-orders-api.js:172 ~ anonymous ~ deliveryType:', deliveryType);
 
       const orderNo =
         text.match(/Order No:\s*(\d+)/)?.[1] || "";
