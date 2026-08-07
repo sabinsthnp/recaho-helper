@@ -289,11 +289,25 @@ box-shadow: 2px 2px #8f8f8f;
 
     renderCaptainStats(document.getElementById("captain-stats"), filtered);
 
-    // Render sheet
+    // Render sheet, sorted chronologically by time slot
+    const sorted = [...filtered].sort(
+      (a, b) => timeSlotRank(a.timeSlot) - timeSlotRank(b.timeSlot)
+    );
+
     const list = document.getElementById("delivery-list");
     list.innerHTML = "";
 
-    renderOrdersSheet(list, filtered);
+    renderOrdersSheet(list, sorted);
+  }
+
+  function timeSlotRank(timeSlot) {
+    const slot = timeSlot || "";
+
+    if (/10.*2/i.test(slot)) return 0;   // 10am - 2pm
+    if (/2.*6/i.test(slot)) return 1;    // 2pm - 6pm
+    if (/6.*10/i.test(slot)) return 2;   // 6pm - 10pm
+    if (/10.*11/i.test(slot) || /11:45/i.test(slot)) return 3; // 10 - 11:45pm
+    return 4; // unspecified / unrecognized slot last
   }
 
   function renderCaptainStats(container, orders) {
@@ -364,6 +378,7 @@ box-shadow: 2px 2px #8f8f8f;
     { field: "map", label: "Map", type: "link" },
     { field: "image", label: "Image", type: "image-link" },
     { field: "deliveryDate", label: "Delivery Date" },
+    { field: "deliveryType", label: "Type" },
     { field: "delete", label: "", type: "delete" }
   ];
 
@@ -410,17 +425,21 @@ box-shadow: 2px 2px #8f8f8f;
 
     const tbody = document.createElement("tbody");
 
-    orders.forEach(order => {
+    orders.forEach((order, rowIndex) => {
 
       const tr = document.createElement("tr");
       tr.style.cssText = "border-bottom:1px solid #f1f5f9;";
+
+      const rowBg = order.completed
+        ? "#3cad638c"
+        : (rowIndex % 2 === 0 ? "#ffffff" : "#f8fafc");
 
       SHEET_COLUMNS.forEach(col => {
 
         const td = document.createElement("td");
         td.style.cssText = `
           padding:6px 10px;
-background:${order.completed ? "#3cad638c !important" : "#fff"};
+          background:${rowBg};
           border-right:1px solid #f1f5f9;
           max-width:220px;
           overflow:hidden;
@@ -563,6 +582,92 @@ background:${order.completed ? "#3cad638c !important" : "#fff"};
     }
   }
 
+  async function renderReports(container) {
+
+    if (!container) return;
+
+    container.innerHTML = `<div style="font-size:12px;color:#94a3b8;">Loading...</div>`;
+
+    const orders = await Recaho.getOrders();
+
+    const areas = new Set(orders.map(o => o.area).filter(Boolean));
+    const pending = orders.filter(o => !o.completed);
+    const completed = orders.filter(o => o.completed);
+
+    const slot102 = pending.filter(o => /10.*2/i.test(o.timeSlot)).length;
+    const slot26 = pending.filter(o => /2.*6/i.test(o.timeSlot)).length;
+    const slot610 = pending.filter(o => /6.*10/i.test(o.timeSlot)).length;
+
+    const statRow = (label, value, bg, border, color) => `
+      <div style="
+        display:flex;justify-content:space-between;align-items:center;
+        padding:8px 10px;background:${bg};border:1px solid ${border};
+        border-radius:8px;font-size:12px;font-weight:600;color:${color};
+      ">
+        <span>${label}</span><span>${value}</span>
+      </div>
+    `;
+
+    container.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        ${statRow("Total Orders", orders.length, "#f8fafc", "#e2e8f0", "#334155")}
+        ${statRow("Areas", areas.size, "#f8fafc", "#e2e8f0", "#334155")}
+        ${statRow("Pending", pending.length, "#fff7ed", "#fed7aa", "#9a3412")}
+        ${statRow("Completed", completed.length, "#ecfdf5", "#bbf7d0", "#166534")}
+      </div>
+
+      <div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:8px;">Time Slots (pending)</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        ${statRow("🟢 10-2", slot102, "#ecfdf5", "#bbf7d0", "#166534")}
+        ${statRow("🟠 2-6", slot26, "#fff7ed", "#fed7aa", "#9a3412")}
+        ${statRow("🔴 6-10", slot610, "#fef2f2", "#fecaca", "#991b1b")}
+      </div>
+
+      <div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:8px;">By Captain</div>
+      <div id="recaho-reports-captains" style="display:flex;flex-direction:column;gap:6px;"></div>
+    `;
+
+    const captainsContainer = container.querySelector("#recaho-reports-captains");
+    const groups = {};
+
+    orders.forEach(order => {
+      const captain = (order.captains || "").trim() || "Unassigned";
+
+      if (!groups[captain]) {
+        groups[captain] = { pending: 0, completed: 0 };
+      }
+
+      if (order.completed) {
+        groups[captain].completed++;
+      } else {
+        groups[captain].pending++;
+      }
+    });
+
+    if (Object.keys(groups).length === 0) {
+      captainsContainer.innerHTML = `<div style="font-size:12px;color:#94a3b8;">No orders yet.</div>`;
+      return;
+    }
+
+    Object.keys(groups).sort().forEach(captain => {
+      const { pending: p, completed: c } = groups[captain];
+
+      const row = document.createElement("div");
+      row.style.cssText = `
+        display:flex;justify-content:space-between;align-items:center;
+        padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+        font-size:12px;font-weight:600;color:#334155;
+      `;
+      row.innerHTML = `
+        <span>🧑‍✈️ ${captain}</span>
+        <span><span style="color:#9a3412;">⏳ ${p}</span>&nbsp;&nbsp;<span style="color:#166534;">✅ ${c}</span></span>
+      `;
+      captainsContainer.appendChild(row);
+    });
+  }
+
   Recaho.createDeliveryToolbar = createDeliveryToolbar;
+  Recaho.createDeliveryDashboard = createDeliveryDashboard;
+  Recaho.renderReports = renderReports;
 
 })(window.__recaho);

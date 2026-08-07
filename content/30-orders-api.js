@@ -168,6 +168,10 @@
       const phone = getPhone(card);
       // text.match(/\b05\d{8}\b/)?.[0] || "";
 
+      const suborderBtn = card.querySelector("#suborderBtn span");
+      console.log('🚀 🐞 ~ file: 30-orders-api.js:171 ~ anonymous ~ suborderBtn:', suborderBtn);
+      const deliveryType = suborderBtn?.innerText.trim() || "";
+
       const orderNo =
         text.match(/Order No:\s*(\d+)/)?.[1] || "";
 
@@ -216,6 +220,7 @@
         createdTime,
         timeSlot,
         deliveryDate,
+        deliveryType,
         address,
         area,
         lat,
